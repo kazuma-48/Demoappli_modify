@@ -1,10 +1,7 @@
 import java.util.List;
 
-import javax.sound.midi.Track;
-
 public class SpotifySample {
     public static void main(String[] args) throws Exception {
-        // Spotify APIクライアントの使用例
         String clientID = System.getenv("CLIENT_ID"); //環境変数から取得
         String clientSecret = System.getenv("CLIENT_SECRET"); //環境変数から取得
         if(clientID == null || clientSecret == null) {
