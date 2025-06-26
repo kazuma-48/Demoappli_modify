@@ -1,4 +1,9 @@
-    public List<String> getArtistSongs(String artist, int limit) throws Exception {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.
+
+
+public List<String> getArtistSongs(String artist, int limit) throws Exception {
         String urlStr = "https://api.spotify.com/v1/search?q=" + URLEncoder.encode("artist:" + artist, "UTF-8") + "&type=track&limit=" + limit;
         URI uri = new URI(urlStr);
         URL url = uri.toURL();
