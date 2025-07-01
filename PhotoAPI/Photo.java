@@ -1,3 +1,4 @@
+package PhotoAPI;
 public class Photo {
     private final int id;
     private final String originalUrl;
