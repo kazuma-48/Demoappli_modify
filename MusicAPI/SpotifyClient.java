@@ -55,7 +55,7 @@ public class SpotifyClient{
         URI uri = new URI(urlStr);
         URL url = uri.toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        conn.setRequestPropery("Authorization", "Bearer " + accessToken);
 
         String response = readResponse(conn);
         JSONObject json = new JSONObject(response);
@@ -86,8 +86,8 @@ public class SpotifyClient{
         if(json.has("tracks")){
             JSONArray tracks = json.getJSONObject("tracks").getJSONArray("items");
             if(tracks.length() > 0){
-                JSONObject album = tracks.getJSONObject(0).getJSONObject("album");
-                items.add(album.getString("name"));
+                JSONObject tracks = json.getJSONObject("tracks").getJSONArray("items");
+                items.add(slbum.getString("name"));
                 items.add(album.getJSONArray("images").getJSONObject(0).getString("url"));
             }
         }

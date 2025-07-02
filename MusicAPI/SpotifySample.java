@@ -13,7 +13,7 @@ public class SpotifySample {
 
         SpotifyClient spotifyClient = new SpotifyClient(clientID, clientSecret);
 
-        List<String> songs = spotifyClient.getArtistSongs("YOASOBI",10);
+        List<String> songs = spotifyClient.getArtistSongs("YOASOBI,10");
         System.out.println(songs);
 
         List<String> albumInfo = spotifyClient.getAlbumInfo("YOASOBI","群青");
