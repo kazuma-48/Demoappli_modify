@@ -22,8 +22,8 @@ public class PexelsClient {
         this.apiKey = apiKey;
     }
     
-    public List<Photo> fecthPhotos(String query, int page, int perPage) throws IOException, java.net.URISyntaxException,org.json.JSONException {
-        String urlString = String.format("https://api.pexels.com/v1/search?query=%s&page=%d",query.replace(" ", "%20"), perPage, page);
+    public List<Photo> fetchPhotos(String query, int perPage, int page) throws IOException, java.net.URISyntaxException,org.json.JSONException {
+        String urlString = String.format("https://api.pexels.com/v1/search?query=%s&page=%d&per_page=%d",query.replace(" ", "%20"), page, perPage);
         URL url = new URI(urlString).toURL();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
