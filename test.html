@@ -1,36 +1,61 @@
 <html>
 <head>
-    <meta charset = 'UTF-8'>
-    <title>クイズアプリ</title>
-    <script>
-        function goToNext() {
-            document.getElementById('main').style.display = 'none';
-            document.getElementById('next').style.display = 'block';
-        }
-        function goBack() {
-            document.getElementById('main').style.display = 'block';
-            document.getElementById('next').style.display = 'none';
-        }
-    </script>
+<meta charset='UTF-8'>
+<title>クイズアプリ</title>
+<style>
+.question-box {
+  background: #e3f2fd;
+  border: 3px solid #1976d2;
+  border-radius: 24px;
+  padding: 40px 30px;
+  margin: 40px auto 30px auto;
+  max-width: 700px;
+  font-size: 2em;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.08);
+}
+.home-btn {
+  margin-top: 30px;
+  font-size: 1.2em;
+  padding: 10px 40px;
+  border-radius: 8px;
+  border: none;
+  background: #1976d2;
+  color: #fff;
+  cursor: pointer;
+}
+.home-btn:hover { background: #0d47a1; }
+</style>
+<script>
+function goToNext(id) {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+}
+function goBack(id) {
+  document.getElementById(id).style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+function reloadQuiz() {
+  location.reload();
+}
+function disableChoices() {
+  var btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(function(btn){ btn.disabled = true; });
+}
+function showHomeFromQuiz() {
+  document.getElementById('historyScreen').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+</script>
 </head>
-<body>
-    <div id='main'>
-        <table style='margin:auto;'>
-            <tr>
-                <td><button onclick='goToNext()' style='font-size: 100px;'>歴史</button></td>
-                <td><button onclick='goToNext()' style='font-size: 100px;'>地理</button></td>
-                <td><button onclick='goToNext()' style='font-size: 100px;'>雑学</button></td>
-            </tr>
-            <tr>
-                <td><button onclick='goToNext()' style='font-size: 100px;'></button></td>
-                <td><button onclick='goToNext()' style='font-size: 100px;'>文学</button></td>
-                <td><button onclick='goToNext()' style='font-size: 100px;'>芸術</button></td>
-            </tr>
-        </table>
-    </div>
-    <div id='next' style='display:none;'>
-        <h2>これは2つ目の画面です</h2>
-        <button onclick='goBack()'>戻る</button>
-    </div>
-</body>
-</html>
+<body><div id='main'>
+<table style='margin:auto;'><tr><td><button onclick="goToNext('historyScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td></tr></table>
+</div><div id='historyScreen' style='display:none;'><div id='historyQuiz'><h2>歴史クイズ</h2><div class='question-box'>問題：ライフイズテック株式会社（英: Life is Tech, Inc.）は、東京都港区に本社を置く日本の企業。ITキャンプを中心に、中高生向けのIT教育事業を実施している。</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,0)" style='font-size:30px; margin:10px;'>ライフイズテック</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,1)" style='font-size:30px; margin:10px;'>アーチャーフィッシュ (潜水艦)</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,2)" style='font-size:30px; margin:10px;'>レベッカ・シェイファー</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,3)" style='font-size:30px; margin:10px;'>金久烈</button><br><div id='historyResult'></div><button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button></div><script>
+function checkHistoryAnswer(correct, a) {
+  if(a == correct) {
+    document.getElementById('historyResult').innerHTML = '正解！';
+  } else {
+    document.getElementById('historyResult').innerHTML = '不正解';
+  }
+}
+</script></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div></body></html>
