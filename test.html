@@ -49,8 +49,12 @@ function showHomeFromQuiz() {
 </script>
 </head>
 <body><div id='main'>
-<table style='margin:auto;'><tr><td><button onclick="goToNext('historyScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td></tr></table>
-</div><div id='historyScreen' style='display:none;'><div id='historyQuiz'><h2>歴史クイズ</h2><div class='question-box'>問題：コパ・カンペオナート・プリメーラ・ディビシオン1937は、アルゼンチンのプロサッカーリーグ1部として第7シーズン目のプリメーラ・ディビシオンである。アルゼンチンサッカー協会の運営で行われた。</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(2,0)" style='font-size:30px; margin:10px;'>幻覚植物研究所</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(2,1)" style='font-size:30px; margin:10px;'>アイドル地獄変</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(2,2)" style='font-size:30px; margin:10px;'>プリメーラ・ディビシオン (アルゼンチン)1937</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(2,3)" style='font-size:30px; margin:10px;'>ジーン・アントン</button><br><div id='historyResult'></div><button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button></div><script>
+<table style='margin:auto;'><tr><td><button onclick="goToNext('historyGenreScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td></tr></table>
+</div><div id='historyGenreScreen' style='display:none; text-align:center;'><h2>歴史ジャンルを選択</h2><button onclick="goToNext('nihonshiScreen')" style='font-size:60px; margin:30px;'>日本史</button><button onclick="goToNext('worldshiScreen')" style='font-size:60px; margin:30px;'>世界史</button><br><button class='home-btn' onclick="goBack('historyGenreScreen')">ホームに戻る</button></div><div id='nihonshiScreen' style='display:none;'><div id='historyQuiz'><h2>歴史クイズ</h2><div class='question-box'>問題：○○とは
+
+江戸幕府の職名。老中に次ぐ重職。本項で詳述する。
+幕府と同様に、一部の諸藩に置かれた役職名。本項では簡単に触れる。
+○○の語感から、俗に「年齢の割に老けた外見の男性」あるいは「若いのに年寄りのような趣味または考えを持つ者」の意味として使われることがある。</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(3,0)" style='font-size:30px; margin:10px;'>徳島藩</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(3,1)" style='font-size:30px; margin:10px;'>御家人</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(3,2)" style='font-size:30px; margin:10px;'>戦国</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(3,3)" style='font-size:30px; margin:10px;'>若年寄</button><br><div id='historyResult'></div><button class='home-btn' onclick='showNextHistoryQuiz();' style='margin-right:20px;'>新しい問題を取得</button><button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button></div><script>
 function checkHistoryAnswer(correct, a) {
   if(a == correct) {
     document.getElementById('historyResult').innerHTML = '正解！';
@@ -58,4 +62,7 @@ function checkHistoryAnswer(correct, a) {
     document.getElementById('historyResult').innerHTML = '不正解';
   }
 }
-</script></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div></body></html>
+function showNextHistoryQuiz() {
+  location.href = location.href;
+}
+</script></div><div id='worldshiScreen' style='display:none;'><h2>世界史クイズは準備中です</h2><button class='home-btn' onclick="goBack('worldshiScreen')">ジャンル選択に戻る</button></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div></body></html>
