@@ -100,7 +100,9 @@ public class JapaneseHistory {
             // 問題文から正解用語（タイトル）を除去し、読み仮名（全角カッコ内）も除去
             String sanitizedExtract = extract.replaceAll("（[^）]+）", "");
             sanitizedExtract = sanitizedExtract.replaceAll(java.util.regex.Pattern.quote(answer), "○○");
-            question = sanitizedExtract;
+            String summary = sanitizedExtract.length() > 100 ? sanitizedExtract.substring(0, 100) + "…"
+                    : sanitizedExtract;
+            question = summary + " この用語は何でしょう？";
 
             // 不正解選択肢を「正解に似ている日本史ワード」から選ぶ
             java.util.List<String> distractors = new java.util.ArrayList<>();
@@ -158,7 +160,7 @@ public class JapaneseHistory {
         }
         StringBuilder html = new StringBuilder();
         html.append("<div id='historyQuiz'>");
-        html.append("<h2>歴史クイズ</h2>");
+        html.append("<h2>日本史クイズ</h2>");
         // 問題文を角丸枠で強調
         html.append("<div class='question-box'>問題：" + question + "</div>");
         for (int i = 0; i < 4; i++) {
@@ -167,7 +169,8 @@ public class JapaneseHistory {
         }
         html.append("<div id='historyResult'></div>");
         // 「新しい問題を取得」ボタンを追加
-        html.append("<button class='home-btn' onclick='showNextHistoryQuiz();' style='margin-right:20px;'>新しい問題を取得</button>");
+        html.append(
+                "<button class='home-btn' onclick='showNextHistoryQuiz();' style='margin-right:20px;'>新しい問題を取得</button>");
         // ホームに戻るボタンを追加
         html.append("<button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button>");
         html.append("</div>");
@@ -179,9 +182,13 @@ public class JapaneseHistory {
                 "    document.getElementById('historyResult').innerHTML = '不正解';\n" +
                 "  }\n" +
                 "}\n" +
-                // クイズ部分だけ再生成する関数
+                // クイズ部分だけ再生成する関数（fetchで非同期取得）
                 "function showNextHistoryQuiz() {\n" +
-                "  location.href = location.href;\n" +
+                "  fetch('/japanese-history-quiz').then(r => r.text()).then(html => {\n" +
+                "    document.getElementById('historyQuiz').outerHTML = html;\n" +
+                "  }).catch(e => {\n" +
+                "    alert('新しい問題の取得に失敗しました');\n" +
+                "  });\n" +
                 "}\n" +
                 "</script>");
         return html.toString();

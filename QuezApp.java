@@ -30,6 +30,17 @@ public class QuezApp {
                 html.append("<div id='worldshiScreen' style='display:none;'><h2>世界史クイズは準備中です</h2><button class='home-btn' onclick=\"goBack('worldshiScreen')\">ジャンル選択に戻る</button></div>");
                 // 地理画面のダミー
                 html.append("<div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick=\"goBack('geoScreen')\">ホームに戻る</button></div>");
+                // 日本史ジャンルから問題画面に遷移するJS
+                html.append("<script>\n" +
+                                "function goToNext(id) {\n" +
+                                "  document.getElementById('main').style.display = 'none';\n" +
+                                "  document.getElementById(id).style.display = 'block';\n" +
+                                "}\n" +
+                                "function goBack(id) {\n" +
+                                "  document.getElementById(id).style.display = 'none';\n" +
+                                "  document.getElementById('main').style.display = 'block';\n" +
+                                "}\n" +
+                                "</script>");
                 html.append("</body></html>");
 
                 File htmlFile = new File("test.html");
