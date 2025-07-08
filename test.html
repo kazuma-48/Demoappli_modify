@@ -49,8 +49,8 @@ function showHomeFromQuiz() {
 </script>
 </head>
 <body><div id='main'>
-<table style='margin:auto;'><tr><td><button onclick="goToNext('historyGenreScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td><td><button onclick="goToNext('englishScreen')" style='font-size:60px; margin:30px;'>英語</button></td></tr></table>
-</div><div id='historyGenreScreen' style='display:none; text-align:center;'><h2>歴史ジャンルを選択</h2><button onclick="goToNext('nihonshiScreen')" style='font-size:60px; margin:30px;'>日本史</button><button onclick="goToNext('worldshiScreen')" style='font-size:60px; margin:30px;'>世界史</button><br><button class='home-btn' onclick="goBack('historyGenreScreen')">ホームに戻る</button></div><div id='nihonshiScreen' style='display:none;'><div id='historyQuiz'><h2>日本史クイズ</h2><div class='question-box'>問題：次の意味に当てはまる日本史用語はどれ？<br>意味が取得できませんでした。</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,0)" style='font-size:30px; margin:10px;' class='choice-btn'>藩政期</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,1)" style='font-size:30px; margin:10px;' class='choice-btn'>源頼朝</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,2)" style='font-size:30px; margin:10px;' class='choice-btn'>大久保利通</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,3)" style='font-size:30px; margin:10px;' class='choice-btn'>関白</button><br><div id='historyResult'></div><button class='home-btn' onclick='showNextHistoryQuiz();' style='margin-right:20px;'>新しい問題を取得</button><button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button></div><script>
+<table style='margin:auto;'><tr><td><button onclick="goToNext('historyGenreScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td><td><button onclick="goToNext('englishScreen')" style='font-size:100px; margin:30px;'>英語</button></td></tr></table>
+</div><div id='historyGenreScreen' style='display:none; text-align:center;'><h2>歴史ジャンルを選択</h2><button onclick="goToNext('nihonshiScreen')" style='font-size:60px; margin:30px;'>日本史</button><button onclick="goToNext('worldshiScreen')" style='font-size:60px; margin:30px;'>世界史</button><br><button class='home-btn' onclick="goBack('historyGenreScreen')">ホームに戻る</button></div><div id='nihonshiScreen' style='display:none;'><div id='quizBoxNihonshi'><div id='historyQuiz'><h2>日本史クイズ</h2><div class='question-box'>問題：次の意味に当てはまる日本史用語はどれ？<br>Tosa Domain</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,0)" style='font-size:30px; margin:10px;' class='choice-btn'>豊臣秀吉</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,1)" style='font-size:30px; margin:10px;' class='choice-btn'>土佐藩</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,2)" style='font-size:30px; margin:10px;' class='choice-btn'>岡山藩</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(1,3)" style='font-size:30px; margin:10px;' class='choice-btn'>目付</button><br><div id='historyResult'></div></div><script>
 function checkHistoryAnswer(correct, a) {
   if(a == correct) {
     document.getElementById('historyResult').innerHTML = '正解！';
@@ -65,13 +65,43 @@ function showNextHistoryQuiz() {
     alert('新しい問題の取得に失敗しました');
   });
 }
-</script></div><div id='worldshiScreen' style='display:none;'><h2>世界史クイズは準備中です</h2><button class='home-btn' onclick="goBack('worldshiScreen')">ジャンル選択に戻る</button></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div><div id='englishScreen' style='display:none;'><h2>英語クイズは準備中です</h2><button class='home-btn' onclick="goBack('englishScreen')">ジャンル選択に戻る</button></div><script>
+</script><br><button id='nextNihonshiBtn' class='home-btn' onclick="reloadQuiz('nihonshi')">次の問題</button></div></div><div id='worldshiScreen' style='display:none;'><h2>世界史クイズは準備中です</h2><button class='home-btn' onclick="goBack('worldshiScreen')">ジャンル選択に戻る</button></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div><div id='englishScreen' style='display:none;'><div id='quizBoxEnglish'><div class='question-box'>英語クイズの生成中にエラーが発生しました。</div><br><button id='nextEnglishBtn' class='home-btn' onclick="reloadQuiz('english')">次の問題</button></div><button class='home-btn' onclick="goBack('englishScreen')">ジャンル選択に戻る</button></div><script>
 function goToNext(id) {
-  document.getElementById('main').style.display = 'none';
+  var screens = ['main','historyGenreScreen','nihonshiScreen','worldshiScreen','geoScreen','englishScreen'];
+  for(var i=0;i<screens.length;i++) {
+    var el = document.getElementById(screens[i]);
+    if(el) el.style.display = 'none';
+  }
   document.getElementById(id).style.display = 'block';
 }
 function goBack(id) {
   document.getElementById(id).style.display = 'none';
+  if(id=='historyGenreScreen'||id=='geoScreen'||id=='englishScreen'||id=='worldshiScreen') {
+    document.getElementById('main').style.display = 'block';
+  } else if(id=='nihonshiScreen') {
+    document.getElementById('historyGenreScreen').style.display = 'block';
+  }
+}
+function reloadQuiz(type) {
+  var url = 'http://localhost:8080/quiz?type=' + encodeURIComponent(type);
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onreadystatechange = function() {
+    if(xhr.readyState === 4 && xhr.status === 200) {
+      if(type==='nihonshi'){
+        document.getElementById('quizBoxNihonshi').innerHTML = xhr.responseText + '<br><button id="nextNihonshiBtn" class="home-btn" onclick="reloadQuiz(\'nihonshi\')">次の問題</button>';}
+      else if(type==='english'){
+        document.getElementById('quizBoxEnglish').innerHTML = xhr.responseText + '<br><button id="nextEnglishBtn" class="home-btn" onclick="reloadQuiz(\'english\')">次の問題</button>';}
+    }
+  };
+  xhr.send();
+}
+function disableChoices() {
+  var btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(function(btn){ btn.disabled = true; });
+}
+function showHomeFromQuiz() {
+  document.getElementById('historyScreen').style.display = 'none';
   document.getElementById('main').style.display = 'block';
 }
 </script></body></html>
