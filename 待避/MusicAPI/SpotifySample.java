@@ -1,4 +1,4 @@
-package 待避.TodayAPI.MusicAPI;
+package 待避.MusicAPI;
 import java.util.List;
 
 public class SpotifySample {

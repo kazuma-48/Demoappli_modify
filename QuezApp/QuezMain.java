@@ -43,10 +43,15 @@ public class QuezMain {
                                 ansIdx = Integer.parseInt(ans) - 1;
                         } catch (Exception e) {
                         }
-                        if (ansIdx == quiz.correctIdx) {
-                                System.out.println("正解！");
+                        if (ansIdx >= 0 && ansIdx < quiz.choices.length) {
+                                if (ansIdx == quiz.correctIdx) {
+                                        System.out.println("\u001b[32m【正解！】\u001b[0m");
+                                } else {
+                                        System.out.println("\u001b[31m【不正解】\u001b[0m 正解: "
+                                                        + quiz.choices[quiz.correctIdx]);
+                                }
                         } else {
-                                System.out.println("不正解 正解: " + quiz.choices[quiz.correctIdx]);
+                                System.out.println("無効な入力です。");
                         }
                         System.out.println("次の問題へ進みます。\n");
                 }
@@ -69,10 +74,15 @@ public class QuezMain {
                                 ansIdx = Integer.parseInt(ans) - 1;
                         } catch (Exception e) {
                         }
-                        if (ansIdx == quiz.correctIdx) {
-                                System.out.println("正解！");
+                        if (ansIdx >= 0 && ansIdx < quiz.choices.length) {
+                                if (ansIdx == quiz.correctIdx) {
+                                        System.out.println("\u001b[32m【正解！】\u001b[0m");
+                                } else {
+                                        System.out.println("\u001b[31m【不正解】\u001b[0m 正解: "
+                                                        + quiz.choices[quiz.correctIdx]);
+                                }
                         } else {
-                                System.out.println("不正解 正解: " + quiz.choices[quiz.correctIdx]);
+                                System.out.println("無効な入力です。");
                         }
                         System.out.println("次の問題へ進みます。\n");
                 }
