@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>クイズアプリ</title>
+<style>
+.question-box {
+  background: #e3f2fd;
+  border: 3px solid #1976d2;
+  border-radius: 24px;
+  padding: 40px 30px;
+  margin: 40px auto 30px auto;
+  max-width: 700px;
+  font-size: 2em;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.08);
+}
+.home-btn {
+  margin-top: 30px;
+  font-size: 1.2em;
+  padding: 10px 40px;
+  border-radius: 8px;
+  border: none;
+  background: #1976d2;
+  color: #fff;
+  cursor: pointer;
+}
+.home-btn:hover { background: #0d47a1; }
+</style>
+<script>
+function goToNext(id) {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+}
+function goBack(id) {
+  document.getElementById(id).style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+function reloadQuiz() {
+  location.reload();
+}
+function disableChoices() {
+  var btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(function(btn){ btn.disabled = true; });
+}
+function showHomeFromQuiz() {
+  document.getElementById('historyScreen').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+</script>
+</head>
+<body><div id='main'>
+<table style='margin:auto;'><tr><td><button onclick="goToNext('historyGenreScreen')" style='font-size: 100px;'>歴史</button></td><td><button onclick="goToNext('geoScreen')" style='font-size: 100px;'>地理</button></td></tr></table>
+</div><div id='historyGenreScreen' style='display:none; text-align:center;'><h2>歴史ジャンルを選択</h2><button onclick="goToNext('nihonshiScreen')" style='font-size:60px; margin:30px;'>日本史</button><button onclick="goToNext('worldshiScreen')" style='font-size:60px; margin:30px;'>世界史</button><br><button class='home-btn' onclick="goBack('historyGenreScreen')">ホームに戻る</button></div><div id='nihonshiScreen' style='display:none;'><div id='historyQuiz'><h2>日本史クイズ</h2><div class='question-box'>問題：次の意味に当てはまる日本史用語はどれ？<br>(Edo-period) chief minister</div><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,0)" style='font-size:30px; margin:10px;' class='choice-btn'>大老</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,1)" style='font-size:30px; margin:10px;' class='choice-btn'>藩政改革</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,2)" style='font-size:30px; margin:10px;' class='choice-btn'>藩</button><br><button class='choice-btn' onclick="disableChoices();checkHistoryAnswer(0,3)" style='font-size:30px; margin:10px;' class='choice-btn'>若年寄</button><br><div id='historyResult'></div><button class='home-btn' onclick='showNextHistoryQuiz();' style='margin-right:20px;'>新しい問題を取得</button><button class='home-btn' onclick='showHomeFromQuiz()'>ホーム画面に戻る</button></div><script>
+function checkHistoryAnswer(correct, a) {
+  if(a == correct) {
+    document.getElementById('historyResult').innerHTML = '正解！';
+  } else {
+    document.getElementById('historyResult').innerHTML = '不正解';
+  }
+}
+function showNextHistoryQuiz() {
+  fetch('/japanese-history-quiz').then(r => r.text()).then(html => {
+    document.getElementById('historyQuiz').outerHTML = html;
+  }).catch(e => {
+    alert('新しい問題の取得に失敗しました');
+  });
+}
+</script></div><div id='worldshiScreen' style='display:none;'><h2>世界史クイズは準備中です</h2><button class='home-btn' onclick="goBack('worldshiScreen')">ジャンル選択に戻る</button></div><div id='geoScreen' style='display:none;'><h2>地理クイズは準備中です</h2><button onclick="goBack('geoScreen')">ホームに戻る</button></div><script>
+function goToNext(id) {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById(id).style.display = 'block';
+}
+function goBack(id) {
+  document.getElementById(id).style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+}
+</script></body></html>

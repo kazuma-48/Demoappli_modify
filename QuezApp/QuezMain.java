@@ -1,9 +1,10 @@
+package QuezApp;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class QuezApp {
+public class QuezMain {
         public static void main(String[] args) throws IOException {
                 StringBuilder html = new StringBuilder();
                 html.append(
