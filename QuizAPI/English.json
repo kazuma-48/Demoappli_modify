@@ -1,0 +1,62 @@
+[
+    {
+        "id": "English1",
+        "question": "次の文で正しい動詞の形はどれ？\nShe ____ to school every day.",
+        "choices": [
+            "go",
+            "goes",
+            "going",
+            "gone"
+        ],
+        "answer": "goes",
+        "explanation": "主語が三人称単数（She）で現在形の場合、動詞には “-s” がつきます。正解は “goes”。"
+    },
+    {
+        "id": "English2",
+        "question": "「私はサッカーが好きです。」の英語として正しいものはどれ？",
+        "choices": [
+            "I like soccer.",
+            "I likes soccer.",
+            "I am like soccer.",
+            "I liking soccer."
+        ],
+        "answer": "I like soccer.",
+        "explanation": "“like” は動詞で、“I” に続くときは原形の “like” を使います。"
+    },
+    {
+        "id": "English3",
+        "question": "“fast” の意味として最も適切なのはどれ？",
+        "choices": [
+            "遅い",
+            "静かな",
+            "速い",
+            "重い"
+        ],
+        "answer": "速い",
+        "explanation": "“fast” は「速い」という意味の形容詞または副詞です。"
+    },
+    {
+        "id": "English4",
+        "question": "次の中で前置詞（preposition）はどれ？",
+        "choices": [
+            "run",
+            "under",
+            "happy",
+            "quickly"
+        ],
+        "answer": "under",
+        "explanation": "“under” は「〜の下に」という意味の前置詞です。他は動詞・形容詞・副詞。"
+    },
+    {
+        "id": "English5",
+        "question": "次の文を完成させてください。\nDo you ____ English?",
+        "choices": [
+            "speaks",
+            "speaking",
+            "speak",
+            "spoke"
+        ],
+        "answer": "speak",
+        "explanation": "助動詞 “do” の後には動詞の原形（この場合は “speak”）が来ます。"
+    }
+]

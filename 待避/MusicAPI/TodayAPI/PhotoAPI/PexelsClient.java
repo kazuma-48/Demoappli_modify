@@ -1,4 +1,4 @@
-package 待避.TodayAPI.PhotoAPI;
+package 待避.MusicAPI.TodayAPI.PhotoAPI;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

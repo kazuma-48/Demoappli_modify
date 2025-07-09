@@ -1,4 +1,4 @@
-package 待避.TodayAPI.PhotoAPI;
+package 待避.MusicAPI.TodayAPI.PhotoAPI;
 public class Photo {
     private final int id;
     private final String originalUrl;
