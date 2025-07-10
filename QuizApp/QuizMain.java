@@ -1,8 +1,8 @@
-package QuezApp;
+package QuizApp;
 
 import java.util.Scanner;
 
-public class QuezMain {
+public class QuizMain {
         public static void main(String[] args) {
                 Scanner scanner = new Scanner(System.in);
                 while (true) {
