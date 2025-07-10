@@ -18,7 +18,7 @@ public class English {
     public static Quiz getQuiz() {
         Random rand = new Random();
         String jaWord = WORDS[rand.nextInt(WORDS.length)];
-        String enWord = fetchEnglishFromGlosbe(jaWord);
+        String enWord = fetchEnglish(jaWord);
         if (enWord == null || enWord.isEmpty())
             enWord = "example";
         String question = "次の英単語の日本語訳はどれ？\n" + enWord;
@@ -28,22 +28,35 @@ public class English {
             String apikey = System.getenv("GEMINI_API_KEY");
             if (apikey == null)
                 throw new Exception("APIキー未設定");
-            // Gemini APIでダミー日本語訳を取得
-            choices.add(jaWord); // 正解
-            for (int i = 0; i < 3; i++) {
-                String prompt = "Give me a Japanese word that is a plausible but incorrect translation for the English word '"
-                        + enWord + "'. Only output the word.";
-                String dummy = QuizApp.Gemini.GeminiClient.queryGemini(prompt, apikey).replaceAll("[\n\r]", "").trim();
-                if (!choices.contains(dummy))
-                    choices.add(dummy);
+            // Gemini APIで選択肢（日本語訳4つ、正解含む）を生成
+            String prompt = "The correct Japanese translation for the English word '" + enWord + "' is '" + jaWord
+                    + "'. " +
+                    "Create a 4-choice Japanese quiz. Output JSON: {choices: string[], correctIdx: number}. Only output JSON.";
+            String response = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+            int cIdx = response.indexOf("choices");
+            int iIdx = response.indexOf("correctIdx");
+            if (cIdx != -1 && iIdx != -1) {
+                int cStart = response.indexOf('[', cIdx);
+                int cEnd = response.indexOf(']', cStart);
+                String[] arr = response.substring(cStart + 1, cEnd).replaceAll("\"", "").split(",");
+                for (String s : arr)
+                    choices.add(s.trim());
+                int iStart = response.indexOf(':', iIdx) + 1;
+                int iEnd = response.indexOf('}', iStart);
+                correctIdx = Integer.parseInt(response.substring(iStart, iEnd).replaceAll("[^0-9]", "").trim());
+                // 選択肢をランダムに並び替え、正解インデックスを再計算
+                String correctAnswer = choices.get(correctIdx);
+                Collections.shuffle(choices);
+                correctIdx = choices.indexOf(correctAnswer);
+            } else {
+                // フォールバック: 手動生成
+                choices.clear();
+                choices.add(jaWord);
+                for (int i = 0; i < 3; i++)
+                    choices.add("ダミー訳" + (i + 1));
+                Collections.shuffle(choices);
+                correctIdx = choices.indexOf(jaWord);
             }
-            while (choices.size() < 4) {
-                String fallback = "ダミー訳" + (choices.size() + 1);
-                if (!choices.contains(fallback))
-                    choices.add(fallback);
-            }
-            Collections.shuffle(choices);
-            correctIdx = choices.indexOf(jaWord);
         } catch (Exception e) {
             // エラー時は手動生成
             choices.clear();
@@ -56,20 +69,52 @@ public class English {
         return new Quiz(question, choices.toArray(new String[0]), correctIdx);
     }
 
-    // 5文字のランダム英単語生成
-    private static String randomDummyWord(Random rand) {
-        String alphabet = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            sb.append(alphabet.charAt(rand.nextInt(alphabet.length())));
+    // Wiktionary APIで日本語→英語翻訳を取得（langlinks配列を直接探す簡易パース）
+    private static String fetchEnglishFromWiktionary(String jaWord) {
+        try {
+            String urlStr = "https://ja.wiktionary.org/w/api.php?action=query&titles="
+                    + URLEncoder.encode(jaWord, "UTF-8") + "&prop=langlinks&lllang=en&format=json";
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+            int responseCode = conn.getResponseCode();
+            if (responseCode == 200) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
+                in.close();
+                String res = response.toString();
+                // langlinks配列から"*":"英単語"を探す
+                int llIdx = res.indexOf("\"langlinks\":");
+                if (llIdx != -1) {
+                    int starIdx = res.indexOf("\"*\":\"", llIdx);
+                    if (starIdx != -1) {
+                        int start = starIdx + 6;
+                        int end = res.indexOf('"', start);
+                        if (end > start) {
+                            String word = res.substring(start, end);
+                            // 意味のない文字列の場合は除外
+                            if (word.matches("[a-zA-Z -]+")) {
+                                return word;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // エラー内容を出力
         }
-        return sb.toString();
+        return "No translation found";
     }
 
-    // Glosbe APIで日本語→英語翻訳を取得
-    private static String fetchEnglishFromGlosbe(String jaWord) {
+    // Google翻訳（非公式API）で日本語→英語翻訳を取得
+    private static String fetchEnglishFromGoogle(String jaWord) {
         try {
-            String urlStr = "https://glosbe.com/gapi/translate?from=ja&dest=en&format=json&phrase="
+            String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="
                     + URLEncoder.encode(jaWord, "UTF-8");
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -85,21 +130,29 @@ public class English {
                 }
                 in.close();
                 String res = response.toString();
-                int tIdx = res.indexOf("\\\"phrase\\\":\\\"");
-                if (tIdx == -1)
-                    tIdx = res.indexOf("\"phrase\":\""); // 念のため両方対応
-                if (tIdx != -1) {
-                    int start = tIdx + 9;
-                    int end = res.indexOf('"', start);
-                    if (end > start) {
-                        return res.substring(start, end);
+                // [[["英訳","原文",,,],...],...]
+                int quote1 = res.indexOf('"');
+                int quote2 = res.indexOf('"', quote1 + 1);
+                if (quote1 != -1 && quote2 != -1 && quote2 > quote1) {
+                    String word = res.substring(quote1 + 1, quote2);
+                    if (word.matches("[a-zA-Z -]+")) {
+                        return word;
                     }
                 }
             }
         } catch (Exception e) {
-            // エラー時はnull返却
+            e.printStackTrace();
         }
         return null;
+    }
+
+    // Wiktionary→Google翻訳の順で英訳を取得
+    private static String fetchEnglish(String jaWord) {
+        String word = fetchEnglishFromWiktionary(jaWord);
+        if (word == null || word.equals("No translation found") || word.isEmpty()) {
+            word = fetchEnglishFromGoogle(jaWord);
+        }
+        return word;
     }
 
     // クイズデータ用クラス
