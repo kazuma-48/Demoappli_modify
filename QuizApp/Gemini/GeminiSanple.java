@@ -1,4 +1,4 @@
-package Gemini;
+package QuizApp.Gemini;
 /**
  * Geminiを呼び出すサンプルアプリ
  * 
