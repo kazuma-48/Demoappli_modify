@@ -1,4 +1,4 @@
-package QuezApp;
+package QuizApp;
 
 public class JapaneseHistory {
     // CLI用：問題文・選択肢・正解インデックスを返す
