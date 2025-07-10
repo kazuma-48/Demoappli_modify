@@ -95,7 +95,7 @@ public class QuizMain {
         private static void runKanjiQuiz(Scanner scanner) {
                 while (true) {
                         Kanji.Quiz quiz = Kanji.getQuiz();
-                        System.out.println("\n--- 歴史クイズ ---");
+                        System.out.println("\n--- 漢字クイズ ---");
                         System.out.println(quiz.question);
                         for (int i = 0; i < quiz.choices.length; i++) {
                                 System.out.printf("%d. %s\n", i + 1, quiz.choices[i]);
