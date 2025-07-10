@@ -1,4 +1,7 @@
-package Gemini;
+
+
+import QuizApp.GeminiClient;
+
 /**
  * Geminiを呼び出すサンプルアプリ
  * 
