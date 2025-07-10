@@ -1,0 +1,14 @@
+[
+    {
+        "id": "question1",
+        "question": "次の文で正しい動詞の形はどれ？\nShe ____ to school every day.",
+        "choices": [
+            "go",
+            "goes",
+            "going",
+            "gone"
+        ],
+        "answer": "goes",
+        "explanation": "主語が三人称単数（She）で現在形の場合、動詞には “-s” がつきます。正解は “goes”。"
+    }
+]

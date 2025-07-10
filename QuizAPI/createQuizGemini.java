@@ -1,4 +1,5 @@
 package QuizAPI;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -23,18 +24,20 @@ public class createQuizGemini {
      */
     public static String queryGemini(String question, String apiKey) throws Exception {
         String model = "gemini-2.5-flash";
-        String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + apiKey;
-        String requestBody ="""
-            {
-                "contents": [
-                    {
-                        "parts":[
-                            { "text": "%s" }
-                        ]
-                    }
-                ]   
-            }
-            """.formatted(question);
+        String endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key="
+                + apiKey;
+        // question（prompt）をJSONエスケープして埋め込む
+        String requestBody = String.format("""
+                {
+                    "contents": [
+                        {
+                            "parts": [
+                                { "text": %s }
+                            ]
+                        }
+                    ]
+                }
+                """, org.json.JSONObject.quote(question));
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -42,15 +45,16 @@ public class createQuizGemini {
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
-                
+
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JSONObject json = new JSONObject(response.body());
+        System.out.println("API Response: " + response.body());
         String answer = json.getJSONArray("candidates")
-            .getJSONObject(0)
-            .getJSONObject("content")
-            .getJSONArray("parts")
-            .getJSONObject(0)
-            .getString("text");
+                .getJSONObject(0)
+                .getJSONObject("content")
+                .getJSONArray("parts")
+                .getJSONObject(0)
+                .getString("text");
         return answer;
     }
 }
