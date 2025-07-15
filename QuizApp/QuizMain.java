@@ -9,7 +9,6 @@ public class QuizMain {
                         System.out.println("\n==== クイズアプリ ====");
                         System.out.println("1. 歴史クイズ");
                         System.out.println("2. 英語クイズ");
-                        System.out.println("3. 漢字クイズ");
                         System.out.println("0. 終了");
                         System.out.print("ジャンルを選んでください: ");
                         String input = scanner.nextLine();
@@ -20,8 +19,6 @@ public class QuizMain {
                                 runNihonshiQuiz(scanner);
                         } else if (input.equals("2")) {
                                 runEnglishQuiz(scanner);
-                        } else if (input.equals("3")) {
-                                runKanjiQuiz(scanner);
                         } else {
                                 System.out.println("無効な選択です。");
                         }
@@ -32,7 +29,7 @@ public class QuizMain {
         private static void runNihonshiQuiz(Scanner scanner) {
                 while (true) {
                         History.Quiz quiz = History.getQuiz();
-                        System.out.println("\n--- 歴史クイズ ---");
+                        System.out.println("\n--- 日本史クイズ ---");
                         System.out.println(quiz.question);
                         for (int i = 0; i < quiz.choices.length; i++) {
                                 System.out.printf("%d. %s\n", i + 1, quiz.choices[i]);
