@@ -49,9 +49,27 @@ public class History {
                     }
                 }
             }
-            // 選択肢4つをランダムに選ぶ（重複なし）
+            // Gemini APIで正解と似ている歴史用語を3つ生成
+            String apikey = System.getenv("GEMINI_API_KEY");
+            if (apikey == null)
+                throw new Exception("APIキー未設定");
+            String similarPrompt = "歴史用語『" + answer + "』に似ている、紛らわしい日本の歴史用語を3つ生成してください。\n" +
+                    "1. 実在する歴史用語であること\n2. 正解と混同しやすいこと\n3. 1行に1つ、改行区切りで3つのみ出力してください。";
+            String aiChoicesResponse = QuizApp.GeminiClient.queryGemini(similarPrompt, apikey);
+            String[] aiChoices = aiChoicesResponse.trim().split("\n");
+            // クリーンアップ
+            for (int i = 0; i < aiChoices.length; i++) {
+                aiChoices[i] = aiChoices[i].replaceAll("^[0-9]+[.\\-\\s]*", "").trim();
+            }
+            // 選択肢配列を作成（正解 + AI生成の3つ）
             java.util.LinkedHashSet<String> choicesSet = new java.util.LinkedHashSet<>();
             choicesSet.add(answer);
+            for (int i = 0; i < Math.min(3, aiChoices.length); i++) {
+                if (!aiChoices[i].isEmpty() && !aiChoices[i].equals(answer)) {
+                    choicesSet.add(aiChoices[i]);
+                }
+            }
+            // 足りない場合はランダムで補完
             for (String w : wordList) {
                 if (!w.equals(answer) && choicesSet.size() < 4)
                     choicesSet.add(w);
@@ -65,9 +83,6 @@ public class History {
                     correctIdx = i;
             }
             // Gemini APIに意味・用例・選択肢・正解を渡して自然な問題文を生成
-            String apikey = System.getenv("GEMINI_API_KEY");
-            if (apikey == null)
-                throw new Exception("APIキー未設定");
             StringBuilder detail = new StringBuilder();
             detail.append("意味: ").append(meaning);
             if (dataArr != null && dataArr.length() > 0) {
@@ -86,7 +101,8 @@ public class History {
                     }
                 }
             }
-            String prompt = "歴史史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer + "』です。問題文のみ日本語で自然に出力してください。";
+            String prompt = "歴史史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer
+                    + "』です。問題文のみ日本語で自然に出力してください。";
             String question = QuizApp.GeminiClient.queryGemini(prompt, apikey);
             if (question == null || question.isEmpty())
                 question = "問題文の取得に失敗しました。";
