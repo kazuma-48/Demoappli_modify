@@ -10,7 +10,6 @@ public class QuizMain {
                         System.out.println("1. 歴史クイズ");
                         System.out.println("2. 英語クイズ");
                         System.out.println("3. 漢字クイズ");
-                        System.out.println("4. 音楽クイズ");
                         System.out.println("0. 終了");
                         System.out.print("ジャンルを選んでください: ");
                         String input = scanner.nextLine();
@@ -18,19 +17,19 @@ public class QuizMain {
                                 System.out.println("終了します。");
                                 break;
                         } else if (input.equals("1")) {
-                                runHistoryQuiz(scanner);
+                                runNihonshiQuiz(scanner);
                         } else if (input.equals("2")) {
                                 runEnglishQuiz(scanner);
                         } else if (input.equals("3")) {
                                 runKanjiQuiz(scanner);
                         } else {
-                        System.out.println("無効な選択です。");
+                                System.out.println("無効な選択です。");
                         }
                 }
                 scanner.close();
         }
 
-        private static void runHistoryQuiz(Scanner scanner) {
+        private static void runNihonshiQuiz(Scanner scanner) {
                 while (true) {
                         History.Quiz quiz = History.getQuiz();
                         System.out.println("\n--- 歴史クイズ ---");
@@ -119,7 +118,7 @@ public class QuizMain {
                         } else {
                                 System.out.println("無効な入力です。");
                         }
-                        System.out.println("次の問題へ進みます。\n");
+                        System.out.println("a次の問題へ進みます。\n");
                 }
         }
 }

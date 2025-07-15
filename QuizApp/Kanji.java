@@ -1,8 +1,5 @@
 package QuizApp;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
-
 public class Kanji {
     // CLI用：問題文・選択肢・正解インデックスを返す
     public static Quiz getQuiz() {
@@ -13,100 +10,73 @@ public class Kanji {
                     "舷窓", "股肱", "猛虎", "桔梗", "倨傲", "頃合い", "沙羅双樹", "頓挫", "塞源", "刹那", "食餌", "馬鹿", "叱咤",
                     "腫物", "羞恥心", "丼", "比喩", "脇脳", "美貌", "侮蔑", "賭博", "臥薪嘗胆"
             };
-            java.util.List<String> wordList = new java.util.ArrayList<>(java.util.Arrays.asList(keywords));
+            java.util.List<String> wordList = java.util.Arrays.asList(keywords);
             java.util.Collections.shuffle(wordList);
             String answer = wordList.get(0);
-
-            // jisho.org APIで漢字の読みを取得
+            // jisho.org APIで読み（reading）を取得
             String apiUrl = "https://jisho.org/api/v1/search/words?keyword="
                     + java.net.URLEncoder.encode(answer, "UTF-8");
-            java.net.URI uri = java.net.URI.create(apiUrl);
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET()
-                    .build();
-            java.net.http.HttpResponse<String> response = client.send(request,
-                    java.net.http.HttpResponse.BodyHandlers.ofString());
-
-            JSONObject json = new JSONObject(response.body());
-            String correctReading = "よみがな取得できませんでした";
-            JSONArray dataArr = json.optJSONArray("data");
+            java.net.URL url = new java.net.URL(apiUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            java.io.BufferedReader in = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder content = new StringBuilder();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            conn.disconnect();
+            org.json.JSONObject json = new org.json.JSONObject(content.toString());
+            String reading = "読みが取得できませんでした。";
+            org.json.JSONArray dataArr = json.optJSONArray("data");
             if (dataArr != null && dataArr.length() > 0) {
-                JSONObject first = dataArr.getJSONObject(0);
-                JSONArray japanese = first.optJSONArray("japanese");
-                if (japanese != null && japanese.length() > 0) {
-                    JSONObject firstJapanese = japanese.getJSONObject(0);
-                    String reading = firstJapanese.optString("reading");
-                    if (reading != null && !reading.isEmpty()) {
-                        correctReading = reading;
-                    }
+                org.json.JSONObject first = dataArr.getJSONObject(0);
+                org.json.JSONArray japaneseArr = first.optJSONArray("japanese");
+                if (japaneseArr != null && japaneseArr.length() > 0) {
+                    org.json.JSONObject japanese = japaneseArr.getJSONObject(0);
+                    reading = japanese.optString("reading", reading);
                 }
             }
-
-            // Gemini APIキーの確認
+            // Gemini APIで間違いの読みを3つ生成
             String apikey = System.getenv("GEMINI_API_KEY");
             if (apikey == null)
                 throw new Exception("APIキー未設定");
-
-            // AIで似た読みの間違った選択肢を3つ生成
-            String choicesPrompt = "漢字「" + answer + "」の読み「" + correctReading + "」に似た読み方を3つ生成してください。" +
-                    "以下の条件を満たしてください：\n" +
-                    "1. ひらがなで出力すること\n" +
-                    "2. 実際にありそうな読み方であること\n" +
-                    "3. 正解と音が似ていて混同しやすいこと\n" +
-                    "4. 読み方のみを出力し、説明は不要\n" +
-                    "5. 改行区切りで3つの読み方のみを出力してください";
-
-            String aiChoicesResponse = QuizApp.GeminiClient.queryGemini(choicesPrompt, apikey);
+            String prompt = "漢字『" + answer + "』の正しい読みは『" + reading + "』です。間違いの選択肢として自然な日本語の読みを3つ生成してください。\n" +
+                    "1. 実在しそうな読みであること\n2. 正解と紛らわしいこと\n3. ひらがなで出力し、改行区切りで3つのみ出力してください。";
+            String aiChoicesResponse = QuizApp.GeminiClient.queryGemini(prompt, apikey);
             String[] aiChoices = aiChoicesResponse.trim().split("\n");
-
-            // AI生成の選択肢をクリーンアップ
+            // クリーンアップ
             for (int i = 0; i < aiChoices.length; i++) {
+                // 先頭の数字・記号・空白を除去（正規表現のバックスラッシュは2重にする必要あり）
                 aiChoices[i] = aiChoices[i].replaceAll("^[0-9]+[.\\-\\s]*", "").trim();
-                aiChoices[i] = aiChoices[i].replaceAll("[「」]", "").trim();
             }
-
             // 選択肢配列を作成（正解 + AI生成の3つ）
-            java.util.List<String> choicesList = new java.util.ArrayList<>();
-            choicesList.add(correctReading);
-
-            // AI生成の選択肢を追加（最大3つ）
+            java.util.LinkedHashSet<String> choicesSet = new java.util.LinkedHashSet<>();
+            choicesSet.add(reading);
             for (int i = 0; i < Math.min(3, aiChoices.length); i++) {
-                if (!aiChoices[i].isEmpty() && !aiChoices[i].equals(correctReading)) {
-                    choicesList.add(aiChoices[i]);
+                if (!aiChoices[i].isEmpty() && !aiChoices[i].equals(reading)) {
+                    choicesSet.add(aiChoices[i]);
                 }
             }
-
-            // 足りない場合はデフォルトの読み方で補完
-            String[] defaultReadings = { "あいまい", "ばんせん", "らんこう", "いふ", "いしゅく" };
-            if (choicesList.size() < 4) {
-                for (String reading : defaultReadings) {
-                    if (!choicesList.contains(reading) && choicesList.size() < 4) {
-                        choicesList.add(reading);
-                    }
-                }
+            // 足りない場合はダミーで補完
+            while (choicesSet.size() < 4) {
+                choicesSet.add("だみー");
             }
-
-            // 選択肢をシャッフル
-            java.util.Collections.shuffle(choicesList);
-            // 選択肢をシャッフル
+            java.util.List<String> choicesList = new java.util.ArrayList<>(choicesSet);
             java.util.Collections.shuffle(choicesList);
             String[] choices = choicesList.toArray(new String[0]);
-
             int correctIdx = 0;
             for (int i = 0; i < choices.length; i++) {
-                if (choices[i].equals(correctReading))
+                if (choices[i].equals(reading))
                     correctIdx = i;
             }
-
-            // 問題文を漢字クイズ用に設定
-            String question = "次の漢字の読み方として正しいものはどれですか？\n\n【" + answer + "】";
-
+            String question = answer;
             return new Quiz(question, choices, correctIdx);
         } catch (Exception e) {
             String[] choices = { "エラー", "", "", "" };
-            return new Quiz("APIから漢字クイズを取得できませんでした。エラー: " + e.getMessage(), choices, 0);
+            return new Quiz("APIからクイズを取得できませんでした。", choices, 0);
         }
     }
 

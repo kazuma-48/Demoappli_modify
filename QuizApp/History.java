@@ -1,8 +1,5 @@
 package QuizApp;
 
-import org.json.JSONObject;
-import org.json.JSONArray;
-
 public class History {
     // CLI用：問題文・選択肢・正解インデックスを返す
     public static Quiz getQuiz() {
@@ -21,79 +18,63 @@ public class History {
             // jisho.org APIで意味を取得
             String apiUrl = "https://jisho.org/api/v1/search/words?keyword="
                     + java.net.URLEncoder.encode(answer, "UTF-8");
-            java.net.URI uri = java.net.URI.create(apiUrl);
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(uri)
-                    .GET()
-                    .build();
-            java.net.http.HttpResponse<String> response = client.send(request,
-                    java.net.http.HttpResponse.BodyHandlers.ofString());
-
-            JSONObject json = new JSONObject(response.body());
+            java.net.URL url = new java.net.URL(apiUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            java.io.BufferedReader in = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder content = new StringBuilder();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+            conn.disconnect();
+            org.json.JSONObject json = new org.json.JSONObject(content.toString());
             String meaning = "意味が取得できませんでした。";
-            JSONArray dataArr = json.optJSONArray("data");
+            org.json.JSONArray dataArr = json.optJSONArray("data");
             if (dataArr != null && dataArr.length() > 0) {
-                JSONObject first = dataArr.getJSONObject(0);
-                JSONArray senses = first.optJSONArray("senses");
+                org.json.JSONObject first = dataArr.getJSONObject(0);
+                org.json.JSONArray senses = first.optJSONArray("senses");
                 if (senses != null && senses.length() > 0) {
-                    JSONObject sense = senses.getJSONObject(0);
-                    JSONArray jpDefs = sense.optJSONArray("japanese_definitions");
+                    org.json.JSONObject sense = senses.getJSONObject(0);
+                    org.json.JSONArray jpDefs = sense.optJSONArray("japanese_definitions");
                     if (jpDefs != null && jpDefs.length() > 0) {
                         meaning = jpDefs.join("、").replaceAll("\"", "");
                     } else {
-                        JSONArray defs = sense.optJSONArray("english_definitions");
+                        org.json.JSONArray defs = sense.optJSONArray("english_definitions");
                         if (defs != null && defs.length() > 0) {
                             meaning = defs.join(", ").replaceAll("\"", "");
                         }
                     }
                 }
             }
-
-            // Gemini APIキーの確認
+            // Gemini APIで正解と似ている歴史用語を3つ生成
             String apikey = System.getenv("GEMINI_API_KEY");
             if (apikey == null)
                 throw new Exception("APIキー未設定");
-
-            // AIで正解に似た間違った選択肢を3つ生成
-            String choicesPrompt = "日本史用語「" + answer + "」に似た日本史用語を3つ生成してください。" +
-                    "以下の条件を満たしてください：\n" +
-                    "1. 実在する日本史用語であること\n" +
-                    "2. 正解と混同しやすい用語であること\n" +
-                    "3. 同じ時代や関連する分野の用語であること\n" +
-                    "4. 単語のみを出力し、説明は不要\n" +
-                    "5. 改行区切りで3つの単語のみを出力してください";
-
-            String aiChoicesResponse = QuizApp.GeminiClient.queryGemini(choicesPrompt, apikey);
+            String similarPrompt = "歴史用語『" + answer + "』に似ている、紛らわしい日本の歴史用語を3つ生成してください。\n" +
+                    "1. 実在する歴史用語であること\n2. 正解と混同しやすいこと\n3. 1行に1つ、改行区切りで3つのみ出力してください。";
+            String aiChoicesResponse = QuizApp.GeminiClient.queryGemini(similarPrompt, apikey);
             String[] aiChoices = aiChoicesResponse.trim().split("\n");
-
-            // AI生成の選択肢をクリーンアップ（番号や余計な文字を除去）
+            // クリーンアップ
             for (int i = 0; i < aiChoices.length; i++) {
                 aiChoices[i] = aiChoices[i].replaceAll("^[0-9]+[.\\-\\s]*", "").trim();
-                aiChoices[i] = aiChoices[i].replaceAll("[「」]", "").trim();
             }
-
             // 選択肢配列を作成（正解 + AI生成の3つ）
-            java.util.List<String> choicesList = new java.util.ArrayList<>();
-            choicesList.add(answer);
-
-            // AI生成の選択肢を追加（最大3つ）
+            java.util.LinkedHashSet<String> choicesSet = new java.util.LinkedHashSet<>();
+            choicesSet.add(answer);
             for (int i = 0; i < Math.min(3, aiChoices.length); i++) {
                 if (!aiChoices[i].isEmpty() && !aiChoices[i].equals(answer)) {
-                    choicesList.add(aiChoices[i]);
+                    choicesSet.add(aiChoices[i]);
                 }
             }
-
-            // 足りない場合はキーワードリストから補完
-            if (choicesList.size() < 4) {
-                for (String w : wordList) {
-                    if (!choicesList.contains(w) && choicesList.size() < 4) {
-                        choicesList.add(w);
-                    }
-                }
+            // 足りない場合はランダムで補完
+            for (String w : wordList) {
+                if (!w.equals(answer) && choicesSet.size() < 4)
+                    choicesSet.add(w);
             }
-
-            // 選択肢をシャッフル
+            java.util.List<String> choicesList = new java.util.ArrayList<>(choicesSet);
             java.util.Collections.shuffle(choicesList);
             String[] choices = choicesList.toArray(new String[0]);
             int correctIdx = 0;
@@ -101,16 +82,15 @@ public class History {
                 if (choices[i].equals(answer))
                     correctIdx = i;
             }
-
             // Gemini APIに意味・用例・選択肢・正解を渡して自然な問題文を生成
             StringBuilder detail = new StringBuilder();
             detail.append("意味: ").append(meaning);
             if (dataArr != null && dataArr.length() > 0) {
-                JSONObject first = dataArr.getJSONObject(0);
-                JSONArray senses = first.optJSONArray("senses");
+                org.json.JSONObject first = dataArr.getJSONObject(0);
+                org.json.JSONArray senses = first.optJSONArray("senses");
                 if (senses != null && senses.length() > 0) {
-                    JSONObject sense = senses.getJSONObject(0);
-                    JSONArray exs = sense.optJSONArray("examples");
+                    org.json.JSONObject sense = senses.getJSONObject(0);
+                    org.json.JSONArray exs = sense.optJSONArray("examples");
                     if (exs != null && exs.length() > 0) {
                         detail.append("。用例: ");
                         for (int i = 0; i < exs.length(); i++) {
@@ -121,7 +101,7 @@ public class History {
                     }
                 }
             }
-            String prompt = "日本史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer
+            String prompt = "歴史史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer
                     + "』です。問題文のみ日本語で自然に出力してください。";
             String question = QuizApp.GeminiClient.queryGemini(prompt, apikey);
             if (question == null || question.isEmpty())
@@ -129,7 +109,7 @@ public class History {
             return new Quiz(question, choices, correctIdx);
         } catch (Exception e) {
             String[] choices = { "エラー", "", "", "" };
-            return new Quiz("APIからクイズを取得できませんでした。エラー: " + e.getMessage(), choices, 0);
+            return new Quiz("APIからクイズを取得できませんでした。", choices, 0);
         }
     }
 
