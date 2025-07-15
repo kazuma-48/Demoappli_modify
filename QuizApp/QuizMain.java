@@ -7,7 +7,7 @@ public class QuizMain {
                 Scanner scanner = new Scanner(System.in);
                 while (true) {
                         System.out.println("\n==== クイズアプリ ====");
-                        System.out.println("1. 日本史クイズ");
+                        System.out.println("1. 歴史クイズ");
                         System.out.println("2. 英語クイズ");
                         System.out.println("0. 終了");
                         System.out.print("ジャンルを選んでください: ");
@@ -28,7 +28,7 @@ public class QuizMain {
 
         private static void runNihonshiQuiz(Scanner scanner) {
                 while (true) {
-                        JapaneseHistory.Quiz quiz = JapaneseHistory.getQuiz();
+                        History.Quiz quiz = History.getQuiz();
                         System.out.println("\n--- 日本史クイズ ---");
                         System.out.println(quiz.question);
                         for (int i = 0; i < quiz.choices.length; i++) {
