@@ -45,6 +45,46 @@ public class createQuizSample {
         try {
             String answer = createQuizGemini.queryGemini(prompt, apiKey);
             System.out.println(answer);
+
+            // 保存するかどうかを確認
+            System.out.print("このクイズをquiz.jsonに保存しますか？（1: はい / 2: いいえ）: ");
+            String save = scanner.nextLine().trim();
+            if (save.equals("1")) {
+                java.nio.file.Path path = java.nio.file.Paths.get("QuizAPI", "quiz.json");
+                java.nio.file.Files.createDirectories(path.getParent());
+
+                // answerから不要な文字列を除去
+                String cleanAnswer = answer.replace("```json", "").replace("```", "").trim();
+
+                String content;
+                if (java.nio.file.Files.exists(path)) {
+                    // 既存ファイルを読み込む
+                    content = java.nio.file.Files.readString(path, java.nio.charset.StandardCharsets.UTF_8);
+                    // 末尾の ] や不要な文字列を除去
+                    int arrayEnd = content.lastIndexOf(']');
+                    if (arrayEnd != -1) {
+                        content = content.substring(0, arrayEnd);
+                    }
+                    content = content.replace("```json", "").replace("```", "").trim();
+                    // 配列の中身が空でない場合はカンマを追加
+                    if (content.length() > 1) {
+                        content = content + ",";
+                    } else {
+                        content = "[";
+                    }
+                    // 新しい問題を追加
+                    content = content + "\n" + cleanAnswer + "\n]";
+                    // 保存
+                    java.nio.file.Files.writeString(path, content, java.nio.charset.StandardCharsets.UTF_8);
+                } else {
+                    // 新規作成
+                    content = "[\n" + cleanAnswer + "\n]";
+                    java.nio.file.Files.writeString(path, content, java.nio.charset.StandardCharsets.UTF_8);
+                }
+                System.out.println("QuizAPI/quiz.jsonに保存しました。");
+            } else {
+                System.out.println("クイズ作成を終了します。");
+            }
         } catch (Exception e) {
             System.out.println("エラーが発生しました: " + e.getMessage());
             e.printStackTrace();
