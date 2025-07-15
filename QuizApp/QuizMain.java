@@ -118,7 +118,7 @@ public class QuizMain {
                         } else {
                                 System.out.println("無効な入力です。");
                         }
-                        System.out.println("次の問題へ進みます。\n");
+                        System.out.println("a次の問題へ進みます。\n");
                 }
         }
 }
