@@ -46,4 +46,4 @@ public class QuizApp {
             System.out.println("音声ファイルの再生に失敗しました: " + e.getMessage());
         }
     }
-}abstract
+}
