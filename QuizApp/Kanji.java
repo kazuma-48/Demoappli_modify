@@ -46,7 +46,7 @@ public class Kanji {
                     }
                 }
             }
-            String question = "次の意味に当てはまる日本史用語はどれ？\n" + meaning;
+            String question = "次の意味に当てはまる用語はどれ？\n" + meaning;
             java.util.List<String> choicesList = new java.util.ArrayList<>();
             choicesList.add(answer);
             for (String w : wordList) {
