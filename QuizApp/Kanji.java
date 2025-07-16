@@ -39,6 +39,17 @@ public class Kanji {
                     reading = japanese.optString("reading", reading);
                 }
             }
+            // 読みが取得できなかった場合はGeminiに問い合わせ
+            if (reading.equals("読みが取得できませんでした。")) {
+                String apikey = System.getenv("GEMINI_API_KEY");
+                if (apikey == null)
+                    throw new Exception("APIキー未設定");
+                String prompt = "漢字『" + answer + "』の正しい読み（ひらがな）を1つだけ出力してください。";
+                String aiReading = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+                if (aiReading != null && !aiReading.trim().isEmpty()) {
+                    reading = aiReading.trim().split("\n")[0].replaceAll("^[0-9]+[.\\-\\s]*", "").trim();
+                }
+            }
             // Gemini APIで間違いの読みを3つ生成
             String apikey = System.getenv("GEMINI_API_KEY");
             if (apikey == null)
@@ -49,7 +60,6 @@ public class Kanji {
             String[] aiChoices = aiChoicesResponse.trim().split("\n");
             // クリーンアップ
             for (int i = 0; i < aiChoices.length; i++) {
-                // 先頭の数字・記号・空白を除去（正規表現のバックスラッシュは2重にする必要あり）
                 aiChoices[i] = aiChoices[i].replaceAll("^[0-9]+[.\\-\\s]*", "").trim();
             }
             // 選択肢配列を作成（正解 + AI生成の3つ）
