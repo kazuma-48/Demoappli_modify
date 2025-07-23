@@ -34,7 +34,7 @@ public class Music {
     }
 
     public static Quiz getQuiz() throws Exception {
-        // iTunes Search APIで日本の楽曲を検索
+        // iTunes Search APIで楽曲を検索（日本語楽曲だが問題文に「日本」は表示しない）
         String apiUrl = "https://itunes.apple.com/search?term=%E6%97%A5%E6%9C%AC&media=music&entity=song&country=JP&limit=50";
         java.net.URL url = new java.net.URL(apiUrl);
         java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
@@ -68,7 +68,7 @@ public class Music {
                     continue;
                 usedIdx.add(idx);
                 JSONObject trackObj = results.getJSONObject(idx);
-                String title = trackObj.optString("trackName", "");
+                String title = trackObj.optString("trackName", "").replace("日本", "");
                 String artist = trackObj.optString("artistName", "");
                 if (!title.isEmpty() && !artist.isEmpty() && !titles.contains(title)) {
                     titles.add(title);
@@ -94,7 +94,7 @@ public class Music {
     }
 
     public static IntroQuiz getIntroQuiz() throws Exception {
-        // iTunes Search APIで日本の楽曲を検索
+        // iTunes Search APIで楽曲を検索（日本語楽曲だが問題文に「日本」は表示しない）
         String apiUrl = "https://itunes.apple.com/search?term=%E6%97%A5%E6%9C%AC&media=music&entity=song&country=JP&limit=50";
         java.net.URL url = new java.net.URL(apiUrl);
         java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
@@ -128,7 +128,7 @@ public class Music {
                     continue;
                 usedIdx.add(idx);
                 JSONObject trackObj = results.getJSONObject(idx);
-                String title = trackObj.optString("trackName", "");
+                String title = trackObj.optString("trackName", "").replace("日本", "");
                 String artist = trackObj.optString("artistName", "");
                 if (!title.isEmpty() && !artist.isEmpty() && !titles.contains(title)) {
                     titles.add(title);
