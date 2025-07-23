@@ -56,81 +56,34 @@ public class Cooking {
                     dishList.add(dish);
                 }
             }
-            // 選択肢（正解＋AI生成3つ）
+            // 選択肢（正解＋AI生成3つのみ、重複なし）
             List<String> choicesList = new ArrayList<>();
             choicesList.add(titleJa);
             for (String dish : dishList) {
-                if (choicesList.size() < 4)
+                if (!choicesList.contains(dish) && choicesList.size() < 4) {
                     choicesList.add(dish);
+                }
+                if (choicesList.size() == 4)
+                    break;
             }
-            // 4つ未満ならダミーで埋める
-            while (choicesList.size() < 4)
-                choicesList.add("料理名不明");
-            Collections.shuffle(choicesList);
+            // 4つ未満ならダミーで埋める（重複しないように）
+            while (choicesList.size() < 4) {
+                if (!choicesList.contains("料理名不明")) {
+                    choicesList.add("料理名不明");
+                } else {
+                    // 万が一重複する場合は番号付きで追加
+                    choicesList.add("料理名不明" + choicesList.size());
+                }
+            }
             String[] choices = choicesList.toArray(new String[0]);
             int correctIdxJa = -1;
-            for (int i = 0; i < choices.length; i++) {
-                if (choices[i].equals(titleJa))
-                    correctIdxJa = i;
-            }
-            // Geminiでクイズ形式の日本語に変換
-            StringBuilder quizPrompt = new StringBuilder();
-            quizPrompt.append(String.join(", ", ingredientNames) + "\n");
-            quizPrompt.append("選択肢:\n");
-            for (int i = 0; i < choices.length; i++) {
-                quizPrompt.append((i + 1) + ". " + choices[i] + "\n");
-            }
-            String quizText = GeminiClient.translate("次の文章を日本語のクイズ形式で自然に表示してください: " + quizPrompt.toString() + "解説文は出力しないでください。");
-            // 選択肢はすでに日本語化済み、正解インデックスも計算済み
+            // 問題文は食材情報のみ（選択肢は含めない）
+            String quizText = GeminiClient.translate(
+                    "次の文章を日本語でクイズ問題文として自然に表示してください: 食材: " + String.join(", ", ingredientNames) + "\nこの食材で作れる料理はどれ？");
             return new Quiz(quizText, choices, correctIdxJa);
         } catch (Exception e) {
             // API通信やJSONパース失敗時
             return new Quiz("エラーが発生しました: " + e.getMessage(), new String[] { "-", "-", "-", "-" }, 0);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            Quiz quiz = getQuiz();
-            // クイズ形式で問題文と選択肢のみ表示
-            System.out.println(quiz.question);
-            if (quiz.choices[0].equals("-") && quiz.correctIdx == 0) {
-                // エラー時
-                System.out.println("APIまたはデータ取得エラーです。終了します。");
-                break;
-            }
-            System.out.print("答えを入力してください（番号または料理名/qで終了）: ");
-            String answer = scanner.nextLine().trim();
-            if (answer.equalsIgnoreCase("q")) {
-                System.out.println("終了します。");
-                break;
-            }
-            boolean isCorrect = false;
-            int answerIdx = -1;
-            // 番号で判定
-            try {
-                answerIdx = Integer.parseInt(answer) - 1;
-                if (answerIdx == quiz.correctIdx) {
-                    isCorrect = true;
-                }
-            } catch (NumberFormatException e) {
-                // 料理名で判定（日本語選択肢と比較）
-                if (quiz.correctIdx >= 0 && answer.equalsIgnoreCase(quiz.choices[quiz.correctIdx])) {
-                    isCorrect = true;
-                    answerIdx = quiz.correctIdx;
-                }
-            }
-            if (isCorrect) {
-                System.out.println("正解！");
-            } else {
-                System.out.println("不正解。");
-            }
-            if (answerIdx >= 0 && answerIdx < quiz.choices.length) {
-                System.out.println("あなたの答え: " + quiz.choices[answerIdx]);
-            }
-            System.out.println("正解: " + quiz.choices[quiz.correctIdx]);
-        }
-        scanner.close();
     }
 }
