@@ -58,28 +58,28 @@ public class Cooking {
             }
             // 選択肢（正解＋AI生成3つのみ、重複なし）
             List<String> choicesList = new ArrayList<>();
-            choicesList.add(titleJa);
             for (String dish : dishList) {
-                if (!choicesList.contains(dish) && choicesList.size() < 4) {
+                if (!choicesList.contains(dish) && choicesList.size() < 3) {
                     choicesList.add(dish);
                 }
-                if (choicesList.size() == 4)
-                    break;
             }
             // 4つ未満ならダミーで埋める（重複しないように）
-            while (choicesList.size() < 4) {
-                if (!choicesList.contains("料理名不明")) {
-                    choicesList.add("料理名不明");
-                } else {
-                    // 万が一重複する場合は番号付きで追加
-                    choicesList.add("料理名不明" + choicesList.size());
+            while (choicesList.size() < 3) {
+                String dummy = "料理名不明";
+                int suffix = 1;
+                while (choicesList.contains(dummy)) {
+                    dummy = "料理名不明" + (suffix++);
                 }
+                choicesList.add(dummy);
             }
+            // 正解をランダムな位置に挿入
+            Random rand = new Random();
+            int correctIdxJa = rand.nextInt(4);
+            choicesList.add(correctIdxJa, titleJa);
             String[] choices = choicesList.toArray(new String[0]);
-            int correctIdxJa = -1;
             // 問題文は食材情報のみ（選択肢は含めない）
             String quizText = GeminiClient.translate(
-                    "次の文章を日本語でクイズ問題文として自然に表示してください: 食材: " + String.join(", ", ingredientNames) + "\nこの食材で作れる料理はどれ？");
+                    "次の文章を日本語でクイズ問題文として自然に表示してください。また、問題文の食材は箇条書きにしてください。(承知しました等の確認は出力しないでください。): 食材： " + String.join(", ", ingredientNames));
             return new Quiz(quizText, choices, correctIdxJa);
         } catch (Exception e) {
             // API通信やJSONパース失敗時
