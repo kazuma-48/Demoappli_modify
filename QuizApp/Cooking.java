@@ -8,57 +8,110 @@ import java.util.*;
 import org.json.*;
 
 public class Cooking {
+    public static class Quiz {
+        public final String question;
+        public final String[] choices;
+        public final int correctIdx;
 
-    // Spoonacular APIキーを入力してください
-    private static final String API_KEY = "YOUR_SPOONACULAR_API_KEY";
+        public Quiz(String question, String[] choices, int correctIdx) {
+            this.question = question;
+            this.choices = choices;
+            this.correctIdx = correctIdx;
+        }
+    }
+
+    public static Quiz getQuiz() {
+        // TheMealDB APIでランダムレシピ取得
+        String endpoint = "https://www.themealdb.com/api/json/v1/1/random.php";
+        HttpClient client = HttpClient.newHttpClient();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            JSONObject result = new JSONObject(response.body());
+            JSONArray meals = result.optJSONArray("meals");
+            if (meals == null || meals.length() == 0) {
+                return new Quiz("レシピが見つかりませんでした。", new String[] { "-", "-", "-", "-" }, 0);
+            }
+            JSONObject meal = meals.getJSONObject(0);
+            String title = meal.optString("strMeal", "料理名不明");
+            // 具材抽出（strIngredient1～strIngredient20）
+            List<String> ingredientNames = new ArrayList<>();
+            for (int i = 1; i <= 20; i++) {
+                String ing = meal.optString("strIngredient" + i, "").trim();
+                if (!ing.isEmpty())
+                    ingredientNames.add(ing);
+            }
+            // ダミー選択肢（例: 料理名をランダム生成）
+            List<String> choicesList = new ArrayList<>();
+            choicesList.add(title);
+            String[] dummyChoices = { "カレーライス", "ハンバーグ", "オムライス", "肉じゃが", "親子丼", "天ぷら", "すき焼き", "ラーメン" };
+            Random rand = new Random();
+            while (choicesList.size() < 4) {
+                String dummy = dummyChoices[rand.nextInt(dummyChoices.length)];
+                if (!choicesList.contains(dummy)) {
+                    choicesList.add(dummy);
+                }
+            }
+            Collections.shuffle(choicesList);
+            String[] choices = choicesList.toArray(new String[0]);
+            int correctIdx = -1;
+            for (int i = 0; i < choices.length; i++) {
+                if (choices[i].equals(title)) {
+                    correctIdx = i;
+                    break;
+                }
+            }
+            // Geminiでクイズ形式の日本語に変換
+            StringBuilder quizPrompt = new StringBuilder();
+            quizPrompt.append(String.join(", ", ingredientNames) + "\n");
+            quizPrompt.append("選択肢:\n");
+            for (int i = 0; i < choices.length; i++) {
+                quizPrompt.append((i + 1) + ". " + choices[i] + "\n");
+            }
+            String quizText = GeminiClient.translate("次の文章を日本語のクイズ形式で自然に表示してください: " + quizPrompt.toString());
+            String[] choicesJa = new String[choices.length];
+            for (int i = 0; i < choices.length; i++) {
+                choicesJa[i] = GeminiClient.translate("次の料理名を日本語に翻訳してください: " + choices[i]);
+            }
+            return new Quiz(quizText, choicesJa, correctIdx);
+        } catch (Exception e) {
+            // API通信やJSONパース失敗時
+            return new Quiz("エラーが発生しました: " + e.getMessage(), new String[] { "-", "-", "-", "-" }, 0);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
-
-        // ランダムでレシピを取得
-        int randomOffset = new Random().nextInt(100); // 0～99のランダムなオフセット
-        String endpoint = "https://api.spoonacular.com/recipes/complexSearch?number=1&offset=" +
-                randomOffset + "&apiKey=" + API_KEY;
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        JSONObject result = new JSONObject(response.body());
-        JSONArray recipes = result.getJSONArray("results");
-        if (recipes.length() == 0) {
-            System.out.println("レシピが見つかりませんでした。");
+        Quiz quiz = getQuiz();
+        System.out.println(quiz.question);
+        if (quiz.choices[0].equals("-") && quiz.correctIdx == 0) {
+            // エラー時
+            System.out.println("APIまたはデータ取得エラーです。終了します。");
+            scanner.close();
             return;
         }
-
-        JSONObject recipe = recipes.getJSONObject(0);
-        String title = recipe.getString("title");
-        int id = recipe.getInt("id");
-
-        // レシピの材料を取得
-        String ingredientEndpoint = "https://api.spoonacular.com/recipes/" + id + "/ingredientWidget.json?apiKey=" + API_KEY;
-        HttpRequest ingredientRequest = HttpRequest.newBuilder()
-                .uri(URI.create(ingredientEndpoint))
-                .build();
-        HttpResponse<String> ingredientResponse = client.send(ingredientRequest, HttpResponse.BodyHandlers.ofString());
-        JSONObject ingredientJson = new JSONObject(ingredientResponse.body());
-        JSONArray ingredientsArray = ingredientJson.getJSONArray("ingredients");
-
-        List<String> ingredientNames = new ArrayList<>();
-        for (int i = 0; i < ingredientsArray.length(); i++) {
-            ingredientNames.add(ingredientsArray.getJSONObject(i).getString("name"));
-        }
-
-        System.out.println("【クイズ】この食材で作れる料理はなに？");
-        System.out.println("食材: " + String.join(", ", ingredientNames));
-        System.out.print("答えを入力してください: ");
+        System.out.print("答えを入力してください");
         String answer = scanner.nextLine().trim();
-
-        if (answer.equalsIgnoreCase(title)) {
-            System.out.println("正解！料理名: " + title);
-        } else {
-            System.out.println("不正解。正解は: " + title);
+        boolean isCorrect = false;
+        // 番号で判定
+        try {
+            int idx = Integer.parseInt(answer) - 1;
+            if (idx == quiz.correctIdx) {
+                isCorrect = true;
+            }
+        } catch (NumberFormatException e) {
+            // 料理名で判定（日本語選択肢と比較）
+            if (quiz.correctIdx >= 0 && answer.equalsIgnoreCase(quiz.choices[quiz.correctIdx])) {
+                isCorrect = true;
+            }
         }
+        if (isCorrect) {
+            System.out.println("正解");
+        } else {
+            System.out.println("不正解");
+        }
+        scanner.close();
     }
 }

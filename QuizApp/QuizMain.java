@@ -11,7 +11,7 @@ public class QuizMain {
                         System.out.println("2. 英語クイズ");
                         System.out.println("3. 漢字クイズ");
                         System.out.println("4. 音楽クイズ");
-                        System.out.println("5. 芸術クイズ");
+                        System.out.println("5. 料理クイズ");
                         System.out.println("6. ポケモンクイズ");
                         System.out.println("0. 終了");
                         System.out.print("ジャンルを選んでください: ");
@@ -28,7 +28,7 @@ public class QuizMain {
                         } else if (input.equals("4")) {
                                 runMusicQuiz(scanner);
                         } else if (input.equals("5")) {
-                                runArtQuiz(scanner);
+                                runCookingQuiz(scanner);
                         } else if (input.equals("6")) {
                                 runPokemonQuiz(scanner);
                         } else {
@@ -167,10 +167,10 @@ public class QuizMain {
                 }
         }
 
-        private static void runArtQuiz(Scanner scanner) {
+        private static void runCookingQuiz(Scanner scanner) {
                 while (true) {
-                        Art.Quiz quiz = Art.getQuiz();
-                        System.out.println("\n--- 芸術クイズ ---");
+                        Cooking.Quiz quiz = Cooking.getQuiz();
+                        System.out.println("\n--- 料理クイズ ---");
                         System.out.println(quiz.question);
                         for (int i = 0; i < quiz.choices.length; i++) {
                                 System.out.printf("%d. %s\n", i + 1, quiz.choices[i]);
