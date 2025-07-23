@@ -112,7 +112,7 @@ public class English {
     }
 
     // Google翻訳（非公式API）で日本語→英語翻訳を取得
-    private static String fetchEnglishFromGoogle(String jaWord) {
+    public static String fetchEnglishFromGoogle(String jaWord) {
         try {
             String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="
                     + URLEncoder.encode(jaWord, "UTF-8");

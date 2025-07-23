@@ -1,105 +1,123 @@
 package QuizApp;
 
 public class Art {
-    // CLI用：問題文・選択肢・正解インデックスを返す
+    // クイズを生成するメソッド
     public static Quiz getQuiz() {
         try {
-            String[] keywords = {
-                // 人名（25）
-                "レオナルド・ダ・ヴィンチ", "ミケランジェロ", "ラファエロ", "フェルメール", "レンブラント",
-                "ゴッホ", "モネ", "マネ", "セザンヌ", "ルノワール",
-                "ピカソ", "マティス", "ダリ", "クレー", "ムンク",
-                "葛飾北斎", "伊藤若冲", "狩野永徳", "岸田劉生", "岡本太郎",
-                "草間彌生", "奈良美智", "千住博", "村上隆", "横尾忠則",
-                "モナ・リザ", "最後の晩餐", "アテナイの学堂", "真珠の耳飾りの少女", "夜警",
-                "ひまわり", "星月夜", "睡蓮", "草上の昼食", "オランピア",
-                "大浴女", "ゲルニカ", "アヴィニョンの娘たち", "ダンス", "記憶の固執",
-                "叫び", "富嶽三十六景", "風神雷神図屏風", "洛中洛外図", "麗子像",
-                "太陽の塔", "南瓜", "森の子供", "滝", "五百羅漢図"
-            };
-            java.util.List<String> wordList = new java.util.ArrayList<>(java.util.Arrays.asList(keywords));
-            java.util.Collections.shuffle(wordList);
-            String answer = wordList.get(0);
-            // jisho.org APIで意味を取得
-            String apiUrl = "https://jisho.org/api/v1/search/words?keyword="
-                    + java.net.URLEncoder.encode(answer, "UTF-8");
-            java.net.URL url = new java.net.URL(apiUrl);
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            // Art Institute of Chicago APIから作品データ取得
+            String apiUrl = "https://api.artic.edu/api/v1/artworks?page=1&limit=100";
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) java.net.URI.create(apiUrl).toURL()
+                    .openConnection();
             conn.setRequestMethod("GET");
-            java.io.BufferedReader in = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));
-            StringBuilder content = new StringBuilder();
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-            conn.disconnect();
-            org.json.JSONObject json = new org.json.JSONObject(content.toString());
-            String meaning = "意味が取得できませんでした。";
-            org.json.JSONArray dataArr = json.optJSONArray("data");
-            if (dataArr != null && dataArr.length() > 0) {
-                org.json.JSONObject first = dataArr.getJSONObject(0);
-                org.json.JSONArray senses = first.optJSONArray("senses");
-                if (senses != null && senses.length() > 0) {
-                    org.json.JSONObject sense = senses.getJSONObject(0);
-                    org.json.JSONArray jpDefs = sense.optJSONArray("japanese_definitions");
-                    if (jpDefs != null && jpDefs.length() > 0) {
-                        meaning = jpDefs.join("、").replaceAll("\"", "");
-                    } else {
-                        org.json.JSONArray defs = sense.optJSONArray("english_definitions");
-                        if (defs != null && defs.length() > 0) {
-                            meaning = defs.join(", ").replaceAll("\"", "");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            java.util.List<String> titles = new java.util.ArrayList<>();
+            java.util.List<String> artists = new java.util.ArrayList<>();
+            try (java.io.BufferedReader br = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+                org.json.JSONObject jsonResponse = new org.json.JSONObject(response.toString());
+                org.json.JSONArray data = jsonResponse.optJSONArray("data");
+                if (data != null && data.length() > 0) {
+                    for (int i = 0; i < data.length(); i++) {
+                        org.json.JSONObject artwork = data.getJSONObject(i);
+                        String title = artwork.optString("title", "");
+                        String artist = artwork.optString("artist_title", "");
+                        if (!title.isEmpty() && !artist.isEmpty()) {
+                            titles.add(title);
+                            artists.add(artist);
                         }
                     }
                 }
             }
-            // 選択肢4つをランダムに選ぶ（重複なし）
+            if (titles.isEmpty() || artists.isEmpty()) {
+                String[] choices = { "エラー", "", "", "" };
+                return new Quiz("APIからクイズを取得できませんでした。", choices, 0);
+            }
+            // ランダムで1つ選択
+            int idx = (int) (Math.random() * titles.size());
+            String artworkTitle = titles.get(idx);
+            String artistName = artists.get(idx);
+            // 日本語翻訳（ダミー）
+            String jpArtworkTitle = translateToJapanese(artworkTitle);
+            String jpArtistName = translateToJapanese(artistName);
+            // ダミー作成者名を生成（本来はGeminiAPIで生成）
+            java.util.List<String> dummyArtists = getDummyArtists(artistName);
             java.util.LinkedHashSet<String> choicesSet = new java.util.LinkedHashSet<>();
-            choicesSet.add(answer);
-            for (String w : wordList) {
-                if (!w.equals(answer) && choicesSet.size() < 4)
-                    choicesSet.add(w);
+            choicesSet.add(jpArtistName);
+            for (String dummy : dummyArtists) {
+                choicesSet.add(translateToJapanese(dummy));
             }
             java.util.List<String> choicesList = new java.util.ArrayList<>(choicesSet);
             java.util.Collections.shuffle(choicesList);
             String[] choices = choicesList.toArray(new String[0]);
             int correctIdx = 0;
             for (int i = 0; i < choices.length; i++) {
-                if (choices[i].equals(answer))
+                if (choices[i].equals(jpArtistName))
                     correctIdx = i;
             }
-            // Gemini APIに意味・用例・選択肢・正解を渡して自然な問題文を生成
-            String apikey = System.getenv("GEMINI_API_KEY");
-            if (apikey == null)
-                throw new Exception("APIキー未設定");
-            StringBuilder detail = new StringBuilder();
-            detail.append("意味: ").append(meaning);
-            if (dataArr != null && dataArr.length() > 0) {
-                org.json.JSONObject first = dataArr.getJSONObject(0);
-                org.json.JSONArray senses = first.optJSONArray("senses");
-                if (senses != null && senses.length() > 0) {
-                    org.json.JSONObject sense = senses.getJSONObject(0);
-                    org.json.JSONArray exs = sense.optJSONArray("examples");
-                    if (exs != null && exs.length() > 0) {
-                        detail.append("。用例: ");
-                        for (int i = 0; i < exs.length(); i++) {
-                            detail.append(exs.getString(i));
-                            if (i < exs.length() - 1)
-                                detail.append(" / ");
-                        }
-                    }
-                }
-            }
-            String prompt = "芸術クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer
-                    + "』です。問題文のみ日本語で自然に出力してください。";
-            String question = QuizApp.GeminiClient.queryGemini(prompt, apikey);
-            if (question == null || question.isEmpty())
-                question = "問題文の取得に失敗しました。";
+            String question = "次の作品の作者は誰ですか？: 『" + jpArtworkTitle + "』";
             return new Quiz(question, choices, correctIdx);
         } catch (Exception e) {
             String[] choices = { "エラー", "", "", "" };
             return new Quiz("APIからクイズを取得できませんでした。", choices, 0);
+        }
+    }
+
+    // ダミー作成者名生成（本来はGeminiAPIで生成）
+    private static java.util.List<String> getDummyArtists(String correctArtist) {
+        java.util.List<String> dummies = new java.util.ArrayList<>();
+        java.util.Random rand = new java.util.Random();
+        for (int i = 0; i < 3; i++) {
+            String dummy = correctArtist;
+            // 1文字だけランダムで置換
+            if (dummy.length() > 2) {
+                int pos = rand.nextInt(dummy.length());
+                char c = (char) ('A' + rand.nextInt(26));
+                dummy = dummy.substring(0, pos) + c + dummy.substring(pos + 1);
+            }
+            // 既存のダミーや正解と重複しないように
+            if (!dummies.contains(dummy) && !dummy.equals(correctArtist)) {
+                dummies.add(dummy);
+            } else {
+                i--; // 重複したらやり直し
+            }
+        }
+        return dummies;
+    }
+
+    // Google翻訳APIを使った英語→日本語翻訳
+    private static String translateToJapanese(String text) {
+        if (text == null || text.isEmpty())
+            return "";
+        try {
+            String apiUrl = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ja&dt=t&q="
+                    + java.net.URLEncoder.encode(text, "UTF-8");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) java.net.URI.create(apiUrl).toURL()
+                    .openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            try (java.io.BufferedReader br = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), java.nio.charset.StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+                // レスポンスは多次元配列: [[["日本語訳", "原文", ...], ...], ...]
+                org.json.JSONArray arr = new org.json.JSONArray(response.toString());
+                return arr.getJSONArray(0).getJSONArray(0).getString(0);
+            }
+        } catch (Exception e) {
+            // 失敗時は元のテキスト
+            return text;
         }
     }
 
