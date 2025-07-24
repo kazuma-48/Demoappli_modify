@@ -64,10 +64,6 @@ public class GeminiClient {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JSONObject json = new JSONObject(response.body());
-<<<<<<< HEAD:QuizAPI/createQuizGemini.java
-        // System.out.println("API Response: " + response.body());
-=======
->>>>>>> 96cc9c8fbac2a54f7a2c3ff3195044130267c1cf:GeminiClient.java
         String answer = json.getJSONArray("candidates")
                 .getJSONObject(0)
                 .getJSONObject("content")
