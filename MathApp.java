@@ -54,15 +54,15 @@ public class MathApp {
         String prompt = "次の文章を四択のクイズ問題（question, choices, answer, explanation）としてJSON形式で出力してください。"
                 + "\n文章: " + quizContent
                 + "\n出力例: {\n"
-                + "    \"question\": \"a^2 + 2ab + b^2 を因数分解するとどうなる？\",\n"
+                + "    \"question\": \"a(\u00B2) + 2ab + b(\\u00B2) を因数分解するとどうなる？\",\n"
                 + "    \"choices\": [\n"
-                + "        \"(a + b)^2\",\n"
-                + "        \"(a - b)^2\",\n"
-                + "        \"a^2 - b^2\",\n"
-                + "        \"a^2 + b^2\"\n"
+                + "        \"(a + b)(\\u00B2)\",\n"
+                + "        \"(a - b)(\\u00B2)\",\n"
+                + "        \"a(\\u00B2) - b(\\u00B2)\",\n"
+                + "        \"a(\\u00B2) + b(\\u00B2)\"\n"
                 + "    ],\n"
-                + "    \"answer\": \"(a + b)^2\",\n"
-                + "    \"explanation\": \"a^2 + 2ab + b^2 を因数分解すると (a + b)^2 になります。\"\n"
+                + "    \"answer\": \"(a + b)(\\u00B2)\",\n"
+                + "    \"explanation\": \"a(\\u00B2) + 2ab + b(\\u00B2) を因数分解すると (a + b)(\\u00B2) になります。\"\n"
                 + "}\n"
                 + "必ずJSONのみを出力してください。";
 
