@@ -95,17 +95,20 @@ public class News {
             String[] lines = geminiResult.split("\n");
             String question = "クイズ";
             List<String> geminiChoices = new ArrayList<>();
+            String correctAnswer = null;
             boolean inChoices = false;
             for (String line : lines) {
                 String trimmed = line.trim();
                 // 選択肢開始の目印（例: "1."や"①"など）
-                if (!inChoices && trimmed.matches("^([1-4]|[①-④]|[Ａ-ＤＡ-ＤA-Da-d]|[ア-エ])\\.|^[-・●]")) {
-                    inChoices = true;
-                }
                 if (!inChoices && !trimmed.isEmpty()) {
                     // 問題文から先頭番号や記号を除去
                     question = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
-                } else if (inChoices && !trimmed.isEmpty()) {
+                } else if (!inChoices && trimmed.isEmpty()) {
+                    continue;
+                } else if (!inChoices && (trimmed.matches("^([1-4]|[①-④]|[Ａ-ＤＡ-ＤA-Da-d]|[ア-エ])\\.|^[-・●]"))) {
+                    inChoices = true;
+                }
+                if (inChoices && !trimmed.isEmpty()) {
                     String c = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
                     if (!c.isEmpty())
                         geminiChoices.add(c);
@@ -119,10 +122,27 @@ public class News {
                     }
                 }
             }
-            // 選択肢をシャッフルし、正解インデックスをランダムに
-            Collections.shuffle(geminiChoices);
-            int correctIdx = new Random().nextInt(4);
-            return new Quiz(question, geminiChoices.toArray(new String[0]), correctIdx);
+            // 正解候補をmainTitleから推定（タイトルに含まれる人名・団体名が選択肢にあればそれを正解とする）
+            // Geminiの選択肢のうち、mainTitleに含まれる単語が最も多いものを正解とみなす
+            int bestScore = -1;
+            int bestIdx = 0;
+            for (int i = 0; i < geminiChoices.size(); i++) {
+                String choice = geminiChoices.get(i);
+                int score = 0;
+                for (String word : mainTitle.split("[\s　、,。・]")) {
+                    if (!word.isEmpty() && choice.contains(word))
+                        score++;
+                }
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIdx = i;
+                }
+            }
+            // 選択肢をシャッフルし、正解インデックスを再計算
+            List<String> shuffled = new ArrayList<>(geminiChoices);
+            Collections.shuffle(shuffled);
+            int correctIdx = shuffled.indexOf(geminiChoices.get(bestIdx));
+            return new Quiz(question, shuffled.toArray(new String[0]), correctIdx);
         } catch (Exception e) {
             return new Quiz("ニュース記事が取得できませんでした。", new String[] { "-", "-", "-", "-" }, 0);
         }
