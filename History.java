@@ -1,21 +1,16 @@
-package QuizApp;
 
-public class Art {
+
+public class History {
     // CLI用：問題文・選択肢・正解インデックスを返す
     public static Quiz getQuiz() {
         try {
             String[] keywords = {
-                // 人名（25）
-                "レオナルド・ダ・ヴィンチ", "ミケランジェロ", "ラファエロ", "フェルメール", "レンブラント",
-                "ゴッホ", "モネ", "マネ", "セザンヌ", "ルノワール",
-                "ピカソ", "マティス", "ダリ", "クレー", "ムンク",
-                "葛飾北斎", "伊藤若冲", "狩野永徳", "岸田劉生", "岡本太郎",
-                "草間彌生", "奈良美智", "千住博", "村上隆", "横尾忠則",
-                "モナ・リザ", "最後の晩餐", "アテナイの学堂", "真珠の耳飾りの少女", "夜警",
-                "ひまわり", "星月夜", "睡蓮", "草上の昼食", "オランピア",
-                "大浴女", "ゲルニカ", "アヴィニョンの娘たち", "ダンス", "記憶の固執",
-                "叫び", "富嶽三十六景", "風神雷神図屏風", "洛中洛外図", "麗子像",
-                "太陽の塔", "南瓜", "森の子供", "滝", "五百羅漢図"
+                    "戦国", "幕府", "天皇", "将軍", "条約", "大名", "朝廷", "維新", "元号", "藩主",
+                    "公家", "摂関", "征夷大将軍", "幕末", "明治時代", "江戸時代", "鎌倉時代", "室町時代", "安土桃山時代", "奈良時代",
+                    "平安時代", "飛鳥時代", "古墳時代", "弥生時代", "縄文時代", "士族", "豪族", "藩士", "摂政", "関白",
+                    "幕臣", "外様大名", "譜代大名", "御家人", "奉行", "藩政改革", "藩政維新", "藩政時代", "聖徳太子", "平清盛",
+                    "聖武天皇", "北条政子", "織田信長", "豊臣秀吉", "徳川家康", "明智光秀", "フランシスコ・シャビエル", "西郷隆盛", "大久保利道", "岩倉具視",
+                    "板垣退助", "伊藤博文", "木戸孝允"
             };
             java.util.List<String> wordList = new java.util.ArrayList<>(java.util.Arrays.asList(keywords));
             java.util.Collections.shuffle(wordList);
@@ -91,9 +86,8 @@ public class Art {
                     }
                 }
             }
-            String prompt = "芸術クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer
-                    + "』です。問題文のみ日本語で自然に出力してください。";
-            String question = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+            String prompt = "歴史史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer + "』です。問題文のみ日本語で自然に出力してください。";
+            String question = GeminiClient.queryGemini(prompt, apikey);
             if (question == null || question.isEmpty())
                 question = "問題文の取得に失敗しました。";
             return new Quiz(question, choices, correctIdx);

@@ -1,4 +1,4 @@
-package QuizApp;
+
 
 import java.util.*;
 import java.net.*;
@@ -32,7 +32,7 @@ public class English {
             String prompt = "The correct Japanese translation for the English word '" + enWord + "' is '" + jaWord
                     + "'. " +
                     "Create a 4-choice Japanese quiz. Output JSON: {choices: string[], correctIdx: number}. Only output JSON.";
-            String response = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+            String response = GeminiClient.queryGemini(prompt, apikey);
             int cIdx = response.indexOf("choices");
             int iIdx = response.indexOf("correctIdx");
             if (cIdx != -1 && iIdx != -1) {
@@ -112,7 +112,7 @@ public class English {
     }
 
     // Google翻訳（非公式API）で日本語→英語翻訳を取得
-    private static String fetchEnglishFromGoogle(String jaWord) {
+    public static String fetchEnglishFromGoogle(String jaWord) {
         try {
             String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q="
                     + URLEncoder.encode(jaWord, "UTF-8");
