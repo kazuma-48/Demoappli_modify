@@ -18,7 +18,42 @@ public class News {
         };
         try {
             HttpClient client = HttpClient.newHttpClient();
-            List<String> titles = new ArrayList<>();
+            Set<String> uniqueTitles = new LinkedHashSet<>();
+            List<String> pickedTitles = new ArrayList<>();
+            // 各RSSから最低1件ずつピックアップ
+            for (String rssUrl : rssUrls) {
+                try {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(rssUrl))
+                            .build();
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    String xml = response.body();
+                    int idx = 0;
+                    List<String> localTitles = new ArrayList<>();
+                    while ((idx = xml.indexOf("<title>", idx)) != -1) {
+                        int start = idx + "<title>".length();
+                        int end = xml.indexOf("</title>", start);
+                        if (end == -1)
+                            break;
+                        String title = xml.substring(start, end).trim();
+                        if (!title.equals("Yahoo!ニュース")) {
+                            localTitles.add(title);
+                        }
+                        idx = end + "</title>".length();
+                    }
+                    // そのRSSから1件ランダムに選ぶ
+                    if (!localTitles.isEmpty()) {
+                        Collections.shuffle(localTitles);
+                        String pick = localTitles.get(0);
+                        if (!uniqueTitles.contains(pick)) {
+                            pickedTitles.add(pick);
+                            uniqueTitles.add(pick);
+                        }
+                    }
+                } catch (Exception ignore) {
+                }
+            }
+            // さらに全タイトルから重複なしで追加し、4件以上にする
             for (String rssUrl : rssUrls) {
                 try {
                     HttpRequest request = HttpRequest.newBuilder()
@@ -33,19 +68,20 @@ public class News {
                         if (end == -1)
                             break;
                         String title = xml.substring(start, end).trim();
-                        if (!title.equals("Yahoo!ニュース")) {
-                            titles.add(title);
+                        if (!title.equals("Yahoo!ニュース") && !uniqueTitles.contains(title)) {
+                            pickedTitles.add(title);
+                            uniqueTitles.add(title);
                         }
                         idx = end + "</title>".length();
                     }
                 } catch (Exception ignore) {
                 }
             }
-            if (titles.size() < 4) {
+            if (pickedTitles.size() < 4) {
                 return new Quiz("ニュース記事が取得できませんでした。", new String[] { "-", "-", "-", "-" }, 0);
             }
-            Collections.shuffle(titles);
-            List<String> quizTitles = titles.subList(0, 4);
+            Collections.shuffle(pickedTitles);
+            List<String> quizTitles = pickedTitles.subList(0, 4);
             // 1つ目の記事を問題文の元ネタに、残り3つ＋正解で選択肢
             String mainTitle = quizTitles.get(0);
             List<String> choices = new ArrayList<>(quizTitles);
@@ -57,12 +93,23 @@ public class News {
 
             // GeminiAPIの出力を分割（1行目:問題文, 2行目以降:選択肢）
             String[] lines = geminiResult.split("\n");
-            String question = lines.length > 0 ? lines[0] : "クイズ";
+            String question = "クイズ";
             List<String> geminiChoices = new ArrayList<>();
-            for (int i = 1; i < lines.length; i++) {
-                String c = lines[i].replaceAll("^[-・●\\d.\\s]*", "").trim();
-                if (!c.isEmpty())
-                    geminiChoices.add(c);
+            boolean inChoices = false;
+            for (String line : lines) {
+                String trimmed = line.trim();
+                // 選択肢開始の目印（例: "1."や"①"など）
+                if (!inChoices && trimmed.matches("^([1-4]|[①-④]|[Ａ-ＤＡ-ＤA-Da-d]|[ア-エ])\\.|^[-・●]")) {
+                    inChoices = true;
+                }
+                if (!inChoices && !trimmed.isEmpty()) {
+                    // 問題文から先頭番号や記号を除去
+                    question = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
+                } else if (inChoices && !trimmed.isEmpty()) {
+                    String c = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
+                    if (!c.isEmpty())
+                        geminiChoices.add(c);
+                }
             }
             // Geminiの選択肢が4つ未満なら元のchoicesで補完
             while (geminiChoices.size() < 4) {
