@@ -1,4 +1,4 @@
-package QuizApp;
+
 
 public class History {
     // CLI用：問題文・選択肢・正解インデックスを返す
@@ -87,7 +87,7 @@ public class History {
                 }
             }
             String prompt = "歴史史用語クイズの問題文を作成してください。説明:『" + detail.toString() + "』。正解は『" + answer + "』です。問題文のみ日本語で自然に出力してください。";
-            String question = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+            String question = GeminiClient.queryGemini(prompt, apikey);
             if (question == null || question.isEmpty())
                 question = "問題文の取得に失敗しました。";
             return new Quiz(question, choices, correctIdx);

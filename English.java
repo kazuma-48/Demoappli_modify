@@ -1,4 +1,4 @@
-package QuizApp;
+
 
 import java.util.*;
 import java.net.*;
@@ -32,7 +32,7 @@ public class English {
             String prompt = "The correct Japanese translation for the English word '" + enWord + "' is '" + jaWord
                     + "'. " +
                     "Create a 4-choice Japanese quiz. Output JSON: {choices: string[], correctIdx: number}. Only output JSON.";
-            String response = QuizApp.GeminiClient.queryGemini(prompt, apikey);
+            String response = GeminiClient.queryGemini(prompt, apikey);
             int cIdx = response.indexOf("choices");
             int iIdx = response.indexOf("correctIdx");
             if (cIdx != -1 && iIdx != -1) {
