@@ -7,142 +7,72 @@ import java.util.*;
 public class News {
     // Yahoo!ニュースRSSから記事タイトルを取得し、GeminiAPIでクイズを生成
     public static Quiz getQuiz() {
-        String[] rssUrls = {
-                "https://news.yahoo.co.jp/rss/topics/top-picks.xml",
-                "https://news.yahoo.co.jp/rss/topics/sports.xml",
-                "https://news.yahoo.co.jp/rss/topics/entertainment.xml",
-                "https://news.yahoo.co.jp/rss/topics/business.xml",
-                "https://news.yahoo.co.jp/rss/topics/world.xml",
-                "https://news.yahoo.co.jp/rss/topics/science.xml",
-                "https://news.yahoo.co.jp/rss/topics/local.xml"
-        };
+        String rssUrl = "https://news.yahoo.co.jp/rss/topics/top-picks.xml";
         try {
             HttpClient client = HttpClient.newHttpClient();
-            Set<String> uniqueTitles = new LinkedHashSet<>();
-            List<String> pickedTitles = new ArrayList<>();
-            // 各RSSから最低1件ずつピックアップ
-            for (String rssUrl : rssUrls) {
-                try {
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(URI.create(rssUrl))
-                            .build();
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                    String xml = response.body();
-                    int idx = 0;
-                    List<String> localTitles = new ArrayList<>();
-                    while ((idx = xml.indexOf("<title>", idx)) != -1) {
-                        int start = idx + "<title>".length();
-                        int end = xml.indexOf("</title>", start);
-                        if (end == -1)
-                            break;
-                        String title = xml.substring(start, end).trim();
-                        if (!title.equals("Yahoo!ニュース")) {
-                            localTitles.add(title);
-                        }
-                        idx = end + "</title>".length();
-                    }
-                    // そのRSSから1件ランダムに選ぶ
-                    if (!localTitles.isEmpty()) {
-                        Collections.shuffle(localTitles);
-                        String pick = localTitles.get(0);
-                        if (!uniqueTitles.contains(pick)) {
-                            pickedTitles.add(pick);
-                            uniqueTitles.add(pick);
-                        }
-                    }
-                } catch (Exception ignore) {
+            List<String> titles = new ArrayList<>();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(rssUrl))
+                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String xml = response.body();
+            int idx = 0;
+            while ((idx = xml.indexOf("<title>", idx)) != -1) {
+                int start = idx + "<title>".length();
+                int end = xml.indexOf("</title>", start);
+                if (end == -1)
+                    break;
+                String title = xml.substring(start, end).trim();
+                if (!title.equals("Yahoo!ニュース")) {
+                    titles.add(title);
                 }
+                idx = end + "</title>".length();
             }
-            // さらに全タイトルから重複なしで追加し、4件以上にする
-            for (String rssUrl : rssUrls) {
-                try {
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(URI.create(rssUrl))
-                            .build();
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                    String xml = response.body();
-                    int idx = 0;
-                    while ((idx = xml.indexOf("<title>", idx)) != -1) {
-                        int start = idx + "<title>".length();
-                        int end = xml.indexOf("</title>", start);
-                        if (end == -1)
-                            break;
-                        String title = xml.substring(start, end).trim();
-                        if (!title.equals("Yahoo!ニュース") && !uniqueTitles.contains(title)) {
-                            pickedTitles.add(title);
-                            uniqueTitles.add(title);
-                        }
-                        idx = end + "</title>".length();
-                    }
-                } catch (Exception ignore) {
-                }
-            }
-            if (pickedTitles.size() < 4) {
+            if (titles.isEmpty()) {
                 return new Quiz("ニュース記事が取得できませんでした。", new String[] { "-", "-", "-", "-" }, 0);
             }
-            Collections.shuffle(pickedTitles);
-            List<String> quizTitles = pickedTitles.subList(0, 4);
-            // 1つ目の記事を問題文の元ネタに、残り3つ＋正解で選択肢
-            String mainTitle = quizTitles.get(0);
-            List<String> choices = new ArrayList<>(quizTitles);
-
-            // GeminiAPIでSPI（総合適性検査）形式のクイズ問題文と選択肢を生成
-            String prompt = "次のニュース記事タイトルをもとに、SPI（総合適性検査）のような形式で、文章読解型のクイズ問題文と4つの選択肢を日本語で自然に出力してください。問題文は一文の短いストーリーや状況説明とし、選択肢は内容理解や推論を問うものにしてください。解説文は不要です。タイトル: "
-                    + mainTitle + " 選択肢: " + String.join(", ", choices);
+            Collections.shuffle(titles);
+            String pickedTitle = titles.get(0);
+            String articleContent = fetchArticleContent(pickedTitle); // ダミー関数
+            // GeminiAPIに記事内容を渡して1問のクイズ（選択肢4つ）を生成
+            String prompt = "次のニュース記事内容をもとに、問題文は記事内容を要約したストーリーや状況説明で問いかけるものとして、選択肢は4つ、その中に登場する人物名・日付・国名などを当てる形式にしてください。" +
+                    "また、「ある場所」などと濁さずに正式に表示してください。正解以外の選択肢（誤答）は、正解と間違えやすい実在の人物・日付・国名などを用意してください。問題文や選択肢には記事内容やタイトルを直接表示しないでください。解説文、問題、選択肢という記載は不要です。\n記事内容: "
+                    + articleContent;
             String geminiResult = GeminiClient.translate(prompt);
-
             // GeminiAPIの出力を分割（1行目:問題文, 2行目以降:選択肢）
             String[] lines = geminiResult.split("\n");
-            String question = "クイズ";
+            String question = null;
             List<String> geminiChoices = new ArrayList<>();
-            String correctAnswer = null;
-            boolean inChoices = false;
             for (String line : lines) {
                 String trimmed = line.trim();
-                // 選択肢開始の目印（例: "1."や"①"など）
-                if (!inChoices && !trimmed.isEmpty()) {
-                    // 問題文から先頭番号や記号を除去
-                    question = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
-                } else if (!inChoices && trimmed.isEmpty()) {
+                if (trimmed.isEmpty())
                     continue;
-                } else if (!inChoices && (trimmed.matches("^([1-4]|[①-④]|[Ａ-ＤＡ-ＤA-Da-d]|[ア-エ])\\.|^[-・●]"))) {
-                    inChoices = true;
-                }
-                if (inChoices && !trimmed.isEmpty()) {
+                if (question == null) {
+                    question = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
+                } else {
                     String c = trimmed.replaceFirst("^[-・●\\d.\\s]*", "").trim();
                     if (!c.isEmpty())
                         geminiChoices.add(c);
                 }
             }
-            // Geminiの選択肢が4つ未満なら元のchoicesで補完
             while (geminiChoices.size() < 4) {
-                for (String c : choices) {
-                    if (!geminiChoices.contains(c) && geminiChoices.size() < 4) {
-                        geminiChoices.add(c);
-                    }
-                }
+                geminiChoices.add("-");
             }
-            // 正解候補をmainTitleから推定（タイトルに含まれる人名・団体名が選択肢にあればそれを正解とする）
-            // Geminiの選択肢のうち、mainTitleに含まれる単語が最も多いものを正解とみなす
-            int bestScore = -1;
-            int bestIdx = 0;
+            // 正解選択肢を自動判定（「（正解）」や「※正解」などの表記があればそれを優先）
+            int correctIdx = 0;
             for (int i = 0; i < geminiChoices.size(); i++) {
-                String choice = geminiChoices.get(i);
-                int score = 0;
-                for (String word : mainTitle.split("[\s　、,。・]")) {
-                    if (!word.isEmpty() && choice.contains(word))
-                        score++;
-                }
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestIdx = i;
+                String c = geminiChoices.get(i);
+                if (c.contains("正解") || c.contains("（正解") || c.contains("※正解") || c.matches(".*[\\(（]正解[\\)）].*")) {
+                    correctIdx = i;
+                    // 表記を除去
+                    geminiChoices.set(i,
+                            c.replaceAll("[（\\(※]?正解[\\)）]?$", "").replaceAll("[（\\(※]?正解[\\)）]?", "").trim());
+                    break;
                 }
             }
-            // 選択肢をシャッフルし、正解インデックスを再計算
-            List<String> shuffled = new ArrayList<>(geminiChoices);
-            Collections.shuffle(shuffled);
-            int correctIdx = shuffled.indexOf(geminiChoices.get(bestIdx));
-            return new Quiz(question, shuffled.toArray(new String[0]), correctIdx);
+            if (question == null)
+                question = "クイズ";
+            return new Quiz(question, geminiChoices.toArray(new String[0]), correctIdx);
         } catch (Exception e) {
             return new Quiz("ニュース記事が取得できませんでした。", new String[] { "-", "-", "-", "-" }, 0);
         }
@@ -159,5 +89,12 @@ public class News {
             this.choices = choices;
             this.correctIdx = correctIdx;
         }
+    }
+
+    // ニュースタイトルから記事内容を取得するダミー関数（実装例: タイトルをそのまま返す）
+    private static String fetchArticleContent(String title) {
+        // 本来はタイトルから記事本文を取得する処理を実装
+        // ここではダミーでタイトルを返す
+        return title;
     }
 }

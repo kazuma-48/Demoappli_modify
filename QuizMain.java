@@ -20,7 +20,7 @@ public class QuizMain {
                                 System.out.println("終了します。");
                                 break;
                         } else if (input.equals("1")) {
-                                runNihonshiQuiz(scanner);
+                                runHistoryQuiz(scanner);
                         } else if (input.equals("2")) {
                                 runEnglishQuiz(scanner);
                         } else if (input.equals("3")) {
@@ -42,7 +42,7 @@ public class QuizMain {
                 scanner.close();
         }
 
-        private static void runNihonshiQuiz(Scanner scanner) {
+        private static void runHistoryQuiz(Scanner scanner) {
                 while (true) {
                         History.Quiz quiz = History.getQuiz();
                         System.out.println("\n--- 歴史クイズ ---");
