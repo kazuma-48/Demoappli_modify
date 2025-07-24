@@ -1,4 +1,3 @@
-package QuizAPI;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -48,7 +47,7 @@ public class createQuizGemini {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         JSONObject json = new JSONObject(response.body());
-        System.out.println("API Response: " + response.body());
+        // System.out.println("API Response: " + response.body());
         String answer = json.getJSONArray("candidates")
                 .getJSONObject(0)
                 .getJSONObject("content")
