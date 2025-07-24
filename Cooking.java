@@ -79,7 +79,7 @@ public class Cooking {
             String[] choices = choicesList.toArray(new String[0]);
             // 問題文は食材情報のみ（選択肢は含めない）
             String quizText = GeminiClient.translate(
-                    "次の文章を日本語でクイズ問題文として自然に表示してください。また、問題文の食材は箇条書きにしてください。(承知しました等の確認は出力しないでください。): 食材： " + String.join(", ", ingredientNames));
+                    "次の文章を日本語でクイズ問題文として自然に表示してください。また、問題文の食材は箇条書きにしてください。(承知しました等の確認、*は出力しないでください。): 食材： " + String.join(", ", ingredientNames));
             return new Quiz(quizText, choices, correctIdxJa);
         } catch (Exception e) {
             // API通信やJSONパース失敗時

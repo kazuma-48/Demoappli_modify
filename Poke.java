@@ -1,17 +1,18 @@
 
-
 import java.net.*;
 import java.io.*;
 import java.util.*;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class Poke {
-    // PokéAPIからポケモン名（英語）と種族値を取得し、日本語訳も付与するクイズ
+    // PokéAPIからポケモン名（日本語）と種族値を取得するクイズ
     public static Quiz getQuiz() {
         try {
             int pokeId = 1 + new Random().nextInt(898); // 第8世代まで
             String apiUrl = "https://pokeapi.co/api/v2/pokemon/" + pokeId;
             String json = fetch(apiUrl);
-            // 英語名取得
             // 日本語名取得（speciesエンドポイント）
             String nameJp = getJapaneseName(pokeId);
             // 種族値リスト取得
@@ -88,29 +89,19 @@ public class Poke {
 
     // JSONから種族値を抽出
     private static int extractStat(String json, String statName) {
-        String key = "\"stat\":{\"name\":\"" + statName + "\"";
-        int idx = json.indexOf(key);
-        if (idx == -1)
+        try {
+            JSONObject obj = new JSONObject(json);
+            JSONArray statsArr = obj.getJSONArray("stats");
+            for (int i = 0; i < statsArr.length(); i++) {
+                JSONObject statObj = statsArr.getJSONObject(i);
+                if (statObj.getJSONObject("stat").getString("name").equals(statName)) {
+                    return statObj.getInt("base_stat");
+                }
+            }
+        } catch (Exception e) {
             return -1;
-        int baseIdx = json.lastIndexOf("base_stat", idx);
-        if (baseIdx == -1)
-            return -1;
-        int colon = json.indexOf(":", baseIdx);
-        int comma = json.indexOf(",", colon);
-        String num = json.substring(colon + 1, comma).replaceAll("[^0-9]", "");
-        return Integer.parseInt(num);
-    }
-
-    // JSONから値を抽出
-    private static String extract(String json, String prefix, String suffix) {
-        int s = json.indexOf(prefix);
-        if (s == -1)
-            return "?";
-        s += prefix.length();
-        int e = json.indexOf(suffix, s);
-        if (e == -1)
-            return json.substring(s);
-        return json.substring(s, e);
+        }
+        return -1;
     }
 
     // 英語種族値名→日本語
@@ -137,10 +128,17 @@ public class Poke {
     private static String getJapaneseName(int pokeId) {
         try {
             String url = "https://pokeapi.co/api/v2/pokemon-species/" + pokeId;
-            String json = fetch(url);
-            // JSONから日本語名を抽出
-            String nameJp = extract(json, "\"name\":\"", "\",\"language\":{\"name\":\"ja\"}");
-            return nameJp.equals("?") ? "不明" : nameJp;
+            String jsonStr = fetch(url);
+            JSONObject json = new JSONObject(jsonStr);
+            JSONArray names = json.getJSONArray("names");
+
+            for (int i = 0; i < names.length(); i++) {
+                JSONObject nameObj = names.getJSONObject(i);
+                if (nameObj.getJSONObject("language").getString("name").equals("ja")) {
+                    return nameObj.getString("name");
+                }
+            }
+            return "不明"; // 日本語が見つからなかった場合
         } catch (Exception e) {
             return "不明";
         }
