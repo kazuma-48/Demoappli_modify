@@ -32,6 +32,7 @@ public class QuizMain {
                         } else if (input.equals("6")) {
                                 runCookingQuiz(scanner);
                         } else if (input.equals("7")) {
+                                runYahooRealtimeQuiz(scanner);
                                 runNewsQuiz(scanner);
                         } else if (input.equals("8")) {
                                 runPokemonQuiz(scanner);
@@ -233,6 +234,9 @@ public class QuizMain {
                 }
         }
 
+        private static void runYahooRealtimeQuiz(Scanner scanner) {
+                while (true) {
+                        YahooRealtimeQuiz.Quiz quiz = YahooRealtimeQuiz.getTrendKeywordQuiz();
         private static void runNewsQuiz(Scanner scanner) {
                 while (true) {
                         News.Quiz quiz = News.getQuiz();
