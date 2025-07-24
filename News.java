@@ -35,7 +35,8 @@ public class News {
             String pickedTitle = titles.get(0);
             String articleContent = fetchArticleContent(pickedTitle); // ダミー関数
             // GeminiAPIに記事内容を渡して1問のクイズ（選択肢4つ）を生成
-            String prompt = "次のニュース記事内容をもとに、問題文は記事内容を要約したストーリーや状況説明で問いかけるものとして、選択肢は4つ、その中に登場する人物名・日付・国名などを当てる形式にしてください。" +
+            String prompt = "次のニュース記事内容をもとに、問題文は記事内容を要約したストーリーや状況説明で問いかけるものとして、選択肢は4つ、その中に登場する人物名・日付・国名などを当てる形式にしてください。"
+                    +
                     "また、「ある場所」などと濁さずに正式に表示してください。正解以外の選択肢（誤答）は、正解と間違えやすい実在の人物・日付・国名などを用意してください。問題文や選択肢には記事内容やタイトルを直接表示しないでください。解説文、問題、選択肢という記載は不要です。\n記事内容: "
                     + articleContent;
             String geminiResult = GeminiClient.translate(prompt);
@@ -72,7 +73,11 @@ public class News {
             }
             if (question == null)
                 question = "クイズ";
-            return new Quiz(question, geminiChoices.toArray(new String[0]), correctIdx);
+            // 選択肢をランダムにシャッフルし、正解インデックスを再計算
+            List<String> shuffled = new ArrayList<>(geminiChoices);
+            Collections.shuffle(shuffled);
+            int shuffledCorrectIdx = shuffled.indexOf(geminiChoices.get(correctIdx));
+            return new Quiz(question, shuffled.toArray(new String[0]), shuffledCorrectIdx);
         } catch (Exception e) {
             return new Quiz("ニュース記事が取得できませんでした。", new String[] { "-", "-", "-", "-" }, 0);
         }
