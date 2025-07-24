@@ -12,11 +12,8 @@ public class Poke {
             String apiUrl = "https://pokeapi.co/api/v2/pokemon/" + pokeId;
             String json = fetch(apiUrl);
             // 英語名取得
-            String nameEn = extract(json, "\"name\":\"", "\"");
             // 日本語名取得（speciesエンドポイント）
             String nameJp = getJapaneseName(pokeId);
-            // 英語名をEnglish.javaのAPIで日本語訳
-            String nameJaTrans = English.fetchEnglishFromGoogle(nameEn);
             // 種族値リスト取得
             List<String> statNames = Arrays.asList("hp", "attack", "defense", "special-attack", "special-defense",
                     "speed");
@@ -62,7 +59,7 @@ public class Poke {
             Collections.shuffle(allChoices);
             int correctIdx = allChoices.indexOf(correctChoice);
 
-            String question = "ポケモン『" + nameJp + "（" + nameEn + ", " + nameJaTrans + "）』の種族値は？";
+            String question = "ポケモン『" + nameJp + "』の種族値は？";
             return new Quiz(question, allChoices.toArray(new String[0]), correctIdx);
         } catch (Exception e) {
             return new Quiz("APIエラー: " + e.getMessage(), new String[] { "-", "-", "-", "-" }, 0);
