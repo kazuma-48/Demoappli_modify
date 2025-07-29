@@ -1,0 +1,209 @@
+APIの数は１１個 
+
+History.java
+　・jisho org API 
+    “https://jisho.org/api/v1/search/words?keyword=” + java.net.URLEncoder.encode(answer,”UTF-8”) 
+
+
+English.java
+　・Wiktionary API 
+　　“https://ja.wiktionary.org/w/api.php?action=query&titles=” + URLEncoder.encode(jaWord,”UTF-8") + “&prop=langlinks&lllang=en&format=json” 
+
+　・Google Translate API 
+　　　“https://translate.googleapis.com/translate_a/single? client=gtx&sl=ja&tl=en&dt=t&q=” + URLEncoder.encode(jaWord,”UTF-8”) 
+
+
+Kanji.java
+　・jisho org API 
+　　 “https://jisho.org/api/v1/search/words?keyword=” + java.net.URLEncoder.encode(answer,”UTF-8”) 
+
+
+Music.java
+　・iTunes Search API 
+　　“http://itunes.apple.com/searchterm=%E6%97%A5%E6%9C%AC& media=music&entity=song&country=JP&limit=50” 
+
+
+Cooking.java
+　・TheMealDB API 
+    “https://www.themealdb.com/api/json/v1/1/random.php” 
+
+
+News.java
+　・Yahoo ニュース RSS API 
+    “https://news.yahoo.co.jp/rss/topics/top-picks.xml” 
+
+
+Poke.java
+　・PokeAPI 
+　　“https://pokeapi.co/api/v2/pokemon/” + pokeId 
+
+
+Cat.java
+　・Cat Facts API 
+　　“https://catfact.ninja/fact” 
+
+
+GeminiClient.java
+　・Gemini API 
+　　“https://generativelanguage.googleapis.com/v1beta/models/” + model + “:generateContent?key=” + apikey 
+
+
+Celestial.java
+　・Le Systeme Solaire API 
+　　“https://api.le-systeme-solaire.net/rest/bodies/” 
+
+ 
+Dog.java 
+　・The Dog API 
+　　“https://api.thedogapi.com/v1/breeds” 
+
+
+※Gemini APIはAPIキーが必要です 
+
+
+
+
+
+関数の数は３２個 
+
+[クラス] History.java
+
+　　[関数] getQuiz()
+　　[説明] 歴史クイズの問題と選択肢、正解をランダムに生成し、Quizオブジェクトを返します。
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納する ためのクラスです。 
+
+ 
+
+[クラス] English.java
+
+　　[関数] getQuiz()
+　　[説明] 英語クイズの問題と選択肢、正解をランダムに生成し、Quizオブジェクトを返します。 
+
+　　[関数] fetchEnglishFromWiktionary(String jaWord)
+　　[説明] Wiktionary APIを使用、日本語の単語に対応する英単語を取得 
+
+　　[関数] fetchEnglishFromGoogle(String jaWord)
+　　[説明] Google Translate APIを使用して、日本語の単語に対応する英単語を取得します。 
+
+　　[関数] fetchEnglish(String jaWord)
+　　[説明] Wiktionary APIを使って英訳を取得し、失敗した場合にGoogleTranslate APIを使用して再度英訳を取得します。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+
+
+[クラス] Kanji.java
+
+　　[関数] getQuiz()
+　　[説明] 漢字の読み方に関するクイズを生成し、Quizオブジェクトを返します。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+
+
+[クラス] Music.java 
+
+　　[関数] getQuiz()
+　　[説明] 日本の楽曲情報を取得し、選択肢としてアーティストを提供するクイズを生成する。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+ 
+
+
+[クラス] Math.java 
+
+　　[関数] getQuiz()
+　　[説明] 音楽クイズの問題と選択肢、正解をランダムに生成し、Quizオブジェクトを返します。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+
+
+[クラス] Cooking.java
+
+　　[関数] getQuiz()
+　　[説明] ランダムな料理のレシピを取得して、料理名や食材を使って問題を生成する関数。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+ 
+
+
+[クラス] News.java
+
+　　[関数] getQuiz()
+　　[説明] ニュースRSSから記事タイトルを取得し、Gemini APIに記事内容を送信してクイズを生成するメイン関数。
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+　　[関数] fetchArticleContent(String title)
+　　[説明] ニュース記事のタイトルから実際の記事内容を取得するダミー関数。 
+
+ 
+
+[クラス] Poke.java 
+
+　　[関数] getQuiz()
+　　[説明] ポケモンのランダムなデータを基にクイズを生成するメイン関数。 
+
+　　[関数] fetch(apiUrl)
+　　[説明] 与えられたURLからJSONデータを取得するためのヘルパー関数。 
+
+　　[関数] extractStat(json,stat)
+　　[説明] JSON形式のポケモンデータから、指定された種族値（例えばHP、攻撃、防御）を抽出する関数。 
+
+　　[関数] toJapanese(String stat)
+　　[説明] ポケモンの種族値を日本語に変換する関数。 
+
+　　[関数] getJapaneseName(int pokeId)
+　　[説明] ポケモンIDを元に日本語名を取得するため関数。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+
+
+[クラス] Cat.java
+
+　　[関数] getQuiz()
+　　[説明] 猫の豆知識を取得し、クイズを生成する。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+ 
+
+
+[クラス] Celestial.java
+
+　　[関数] getQuiz()
+　　[説明] APIから情報を取得し、ランダムに天体を選択して質問を生成します。 
+
+　　[関数] Body()
+　　[説明] このクラスは、天体名とその説明を保持します。 
+
+
+ 
+[クラス] Dog.java
+
+　　[関数] getQuiz()
+　　[説明] 犬種の情報を取得し、それを元にクイズを生成する。 
+
+　　[関数] Quiz()
+　　[説明] クイズデータ（問題文、選択肢、正解インデックス）を格納するためのクラスです。 
+
+
+
+[クラス] GeminiClient.java
+
+　　[関数] translate(String prompt)
+　　[説明] 翻訳プロンプトを受け取って、Gemini APIを使って翻訳を試みます。
+
+　　[関数] queryGemini(String question, String apiKey)
+　　[説明] 質問内容とAPIキーを受け取り、Gemini APIにリクエストを送信する。 
